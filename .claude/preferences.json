@@ -1,0 +1,48 @@
+{
+  "project": {
+    "name": "Command and Conquer RTS",
+    "type": "unity",
+    "version": "Unity 6",
+    "language": "C#"
+  },
+  "conventions": {
+    "namespace": "CommandAndConquer",
+    "namingStyle": {
+      "classes": "PascalCase",
+      "methods": "PascalCase",
+      "privateFields": "camelCase",
+      "constants": "UPPER_CASE"
+    },
+    "maxLineLength": 120,
+    "maxMethodLines": 50
+  },
+  "paths": {
+    "projectAssets": "Assets/_Project",
+    "scripts": "Assets/_Project/{Feature}/Scripts",
+    "prefabs": "Assets/_Project/{Feature}/Prefabs",
+    "scenes": "Assets/_Project/Scenes",
+    "data": "Assets/_Project/{Feature}/Data"
+  },
+  "unity": {
+    "renderPipeline": "URP 2D",
+    "inputSystem": "new",
+    "preferSerializeField": true,
+    "useTooltips": true
+  },
+  "codeGeneration": {
+    "includeNamespace": true,
+    "includeUsings": true,
+    "addRegions": false,
+    "defaultUsings": [
+      "UnityEngine",
+      "CommandAndConquer.Core"
+    ]
+  },
+  "documentation": {
+    "files": {
+      "conventions": "CONVENTIONS.md",
+      "units": "UNITS.md",
+      "readme": "README.md"
+    }
+  }
+}

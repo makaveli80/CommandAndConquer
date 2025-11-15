@@ -1,0 +1,16 @@
+{
+  "name": "CommandAndConquer.Units",
+  "rootNamespace": "CommandAndConquer.Units",
+  "references": [
+    "GUID:CommandAndConquer.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
