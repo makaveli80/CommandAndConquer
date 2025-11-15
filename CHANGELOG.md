@@ -6,7 +6,41 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ## [Non publié]
 
-### Préparation du projet (Commits 1-5)
+### Phase 1 : Préparation du projet (Commits 1-5)
+
+### Phase 2 : Systèmes de base (Commits 6+)
+
+## Commit 6 - Système de caméra RTS
+
+### Ajouté
+- Système de caméra RTS complet dans `Assets/_Project/Camera/`
+- **CameraController.cs** - Contrôleur principal de la caméra
+  - Déplacement au clavier (WASD / Flèches)
+  - Edge scrolling (souris aux bords de l'écran)
+  - Zoom avec molette de souris
+  - Limites de déplacement configurables
+  - Support complet du New Input System
+- **CameraBounds.cs** - ScriptableObject pour définir les limites
+  - Boundaries de mouvement (minX, maxX, minY, maxY)
+  - Boundaries de zoom (minZoom, maxZoom)
+- **CameraInputActions.inputactions** - Configuration New Input System
+  - Action Move (Vector2) : WASD + Flèches
+  - Action Zoom (Axis) : Molette souris
+  - Action MousePosition (Vector2) : Position souris
+  - Génération automatique de classe C#
+- **DefaultCameraBounds.asset** - Asset de configuration par défaut
+- **Camera/README.md** - Documentation complète du système
+  - Guide d'installation
+  - Configuration détaillée
+  - API pour développeurs
+  - Exemples d'utilisation
+  - Troubleshooting
+
+### Modifié
+- Architecture vue 2D pure (axes X, Y) pour compatibilité RTS
+
+### Corrigé
+- GUIDs invalides dans CameraInputActions.inputactions causant un chargement infini dans l'éditeur
 
 ## Commit 5 - Configuration développement
 
