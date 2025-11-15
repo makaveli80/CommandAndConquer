@@ -1,0 +1,16 @@
+{
+  "name": "CommandAndConquer.Grid",
+  "rootNamespace": "CommandAndConquer.Grid",
+  "references": [
+    "GUID:CommandAndConquer.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
