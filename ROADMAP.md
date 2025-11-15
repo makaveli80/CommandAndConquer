@@ -28,7 +28,7 @@ Plan de développement du projet Command and Conquer, un RTS 2D éducatif dével
 ```
 Assets/_Project/
 ├── Core/               ✅ Templates de base
-├── Camera/             📁 Vide (à implémenter)
+├── Camera/             ✅ Système complet (CameraController, CameraBounds, Input Actions)
 ├── Grid/               📁 Vide (à implémenter)
 ├── Units/              📁 Vide (à implémenter)
 ├── Map/                📁 Vide (à implémenter)
@@ -37,9 +37,19 @@ Assets/_Project/
 └── Scenes/             📁 Structure créée
 ```
 
+### ✅ Commit 6 : Système de caméra RTS (TERMINÉ)
+
+**Implémenté :**
+- ✅ CameraController avec déplacement WASD/flèches et edge scrolling
+- ✅ CameraBounds (ScriptableObject) pour limites configurables
+- ✅ Zoom avec molette de souris
+- ✅ Support complet New Input System
+- ✅ Documentation complète dans `Camera/README.md`
+- ✅ DefaultCameraBounds asset pour configuration par défaut
+
 ---
 
-## 🎯 Phase 2 : Systèmes de base (PROCHAIN)
+## 🎯 Phase 2 : Systèmes de base (EN COURS)
 
 ### Objectif Version 1
 Créer un prototype jouable avec les fonctionnalités de base :
@@ -51,45 +61,6 @@ Créer un prototype jouable avec les fonctionnalités de base :
 
 ## 📋 Plan détaillé des prochains commits
 
-### Commit 6 : Système de caméra RTS
-
-**Objectif:** Caméra contrôlable avec clavier/souris
-
-**À créer dans `Camera/Scripts/`:**
-
-1. **CameraController.cs**
-   - Namespace: `CommandAndConquer.Camera`
-   - Déplacement WASD ou flèches
-   - Déplacement par bords d'écran (souris)
-   - Zoom molette de souris
-   - Limites de déplacement configurables
-
-2. **CameraBounds.cs**
-   - Définit les limites de mouvement de la caméra
-   - ScriptableObject pour configuration
-
-**À créer dans `Camera/Prefabs/`:**
-- `MainCamera.prefab` avec CameraController attaché
-
-**Tests:**
-- Ouvrir Game.unity (ou SampleScene)
-- Ajouter CameraController à Main Camera
-- Tester déplacement WASD/flèches
-- Tester déplacement souris aux bords
-- Tester zoom molette
-
-**Commit message:**
-```
-feat: add RTS camera controller
-
-- Add CameraController with WASD/arrow keys movement
-- Add edge scrolling with mouse
-- Add mouse wheel zoom
-- Add configurable camera bounds
-- Create MainCamera prefab
-```
-
----
 
 ### Commit 7 : Système de grille
 
@@ -390,5 +361,5 @@ Core (base)
 
 ---
 
-**Dernière mise à jour:** Commit 5 - Configuration développement
-**Prochaine étape:** Commit 6 - Système de caméra RTS
+**Dernière mise à jour:** Commit 6 - Système de caméra RTS
+**Prochaine étape:** Commit 7 - Système de grille
