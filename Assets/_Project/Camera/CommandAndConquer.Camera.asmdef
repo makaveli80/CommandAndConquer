@@ -2,7 +2,8 @@
   "name": "CommandAndConquer.Camera",
   "rootNamespace": "CommandAndConquer.Camera",
   "references": [
-    "GUID:CommandAndConquer.Core"
+    "GUID:CommandAndConquer.Core",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
