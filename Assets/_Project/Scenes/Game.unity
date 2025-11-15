@@ -486,13 +486,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf7bb79fcdb37664ebd50dbe40cc4cf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CommandAndConquer.Camera::CommandAndConquer.Camera.CameraController
-  keyboardMoveSpeed: 10
+  keyboardMoveSpeed: 20
   edgeScrollSpeed: 10
-  edgeScrollBorderSize: 20
-  zoomSpeed: 2
-  zoomSmoothness: 5
+  edgeScrollBorderSize: 10
+  zoomSpeed: 100
+  zoomSmoothness: 50
   cameraBounds: {fileID: 11400000, guid: f9d93281a9f43b543b0d8e3049388295, type: 2}
-  enableEdgeScrolling: 1
+  enableEdgeScrolling: 0
   enableKeyboardMovement: 1
   enableZoom: 1
 --- !u!1 &2131140235

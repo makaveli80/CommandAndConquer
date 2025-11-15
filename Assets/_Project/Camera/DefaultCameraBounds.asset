@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CommandAndConquer.Camera::CommandAndConquer.Camera.CameraBounds
   minX: -10
   maxX: 10
-  minZ: -10
-  maxZ: 10
+  minY: -6
+  maxY: 6
   minZoom: 3
   maxZoom: 15
