@@ -90,12 +90,12 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
     ""maps"": [
         {
             ""name"": ""Camera"",
-            ""id"": ""a1b2c3d4-e5f6-7890-abcd-ef1234567890"",
+            ""id"": ""7f8a3d2e-4b1c-9e5f-a6d7-c8b9e0f1a2d3"",
             ""actions"": [
                 {
                     ""name"": ""Move"",
                     ""type"": ""Value"",
-                    ""id"": ""11111111-1111-1111-1111-111111111111"",
+                    ""id"": ""a1b2c3d4-e5f6-4789-a0b1-c2d3e4f56789"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -104,7 +104,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""Zoom"",
                     ""type"": ""Value"",
-                    ""id"": ""22222222-2222-2222-2222-222222222222"",
+                    ""id"": ""b2c3d4e5-f6a7-4890-b1c2-d3e4f5a67890"",
                     ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -113,7 +113,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""MousePosition"",
                     ""type"": ""Value"",
-                    ""id"": ""33333333-3333-3333-3333-333333333333"",
+                    ""id"": ""c3d4e5f6-a7b8-4901-c2d3-e4f5a6b78901"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -123,7 +123,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
             ""bindings"": [
                 {
                     ""name"": ""WASD"",
-                    ""id"": ""44444444-4444-4444-4444-444444444444"",
+                    ""id"": ""d4e5f6a7-b8c9-4012-d3e4-f5a6b7c89012"",
                     ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -134,7 +134,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""up"",
-                    ""id"": ""55555555-5555-5555-5555-555555555555"",
+                    ""id"": ""e5f6a7b8-c9d0-4123-e4f5-a6b7c8d90123"",
                     ""path"": ""<Keyboard>/w"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -145,7 +145,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""down"",
-                    ""id"": ""66666666-6666-6666-6666-666666666666"",
+                    ""id"": ""f6a7b8c9-d0e1-4234-f5a6-b7c8d9e01234"",
                     ""path"": ""<Keyboard>/s"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -156,7 +156,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""left"",
-                    ""id"": ""77777777-7777-7777-7777-777777777777"",
+                    ""id"": ""a7b8c9d0-e1f2-4345-a6b7-c8d9e0f12345"",
                     ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -167,7 +167,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""right"",
-                    ""id"": ""88888888-8888-8888-8888-888888888888"",
+                    ""id"": ""b8c9d0e1-f2a3-4456-b7c8-d9e0f1a23456"",
                     ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -178,7 +178,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""Arrows"",
-                    ""id"": ""99999999-9999-9999-9999-999999999999"",
+                    ""id"": ""c9d0e1f2-a3b4-4567-c8d9-e0f1a2b34567"",
                     ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -189,7 +189,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""up"",
-                    ""id"": ""aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"",
+                    ""id"": ""d0e1f2a3-b4c5-4678-d9e0-f1a2b3c45678"",
                     ""path"": ""<Keyboard>/upArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -200,7 +200,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""down"",
-                    ""id"": ""bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"",
+                    ""id"": ""e1f2a3b4-c5d6-4789-e0f1-a2b3c4d56789"",
                     ""path"": ""<Keyboard>/downArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -211,7 +211,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""left"",
-                    ""id"": ""cccccccc-cccc-cccc-cccc-cccccccccccc"",
+                    ""id"": ""f2a3b4c5-d6e7-4890-f1a2-b3c4d5e67890"",
                     ""path"": ""<Keyboard>/leftArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -222,7 +222,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""right"",
-                    ""id"": ""dddddddd-dddd-dddd-dddd-dddddddddddd"",
+                    ""id"": ""a3b4c5d6-e7f8-4901-a2b3-c4d5e6f78901"",
                     ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -233,7 +233,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"",
+                    ""id"": ""b4c5d6e7-f8a9-4012-b3c4-d5e6f7a89012"",
                     ""path"": ""<Mouse>/scroll/y"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -244,7 +244,7 @@ public partial class @CameraInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""ffffffff-ffff-ffff-ffff-ffffffffffff"",
+                    ""id"": ""c5d6e7f8-a9b0-4123-c4d5-e6f7a8b90123"",
                     ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
                     ""processors"": """",
