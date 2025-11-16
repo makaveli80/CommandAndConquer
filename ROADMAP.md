@@ -27,11 +27,11 @@ Plan de développement du projet Command and Conquer, un RTS 2D éducatif dével
 **Structure actuelle:**
 ```
 Assets/_Project/
-├── Core/               ✅ Templates de base
+├── Core/               ✅ Templates de base + GridPosition modifié pour 2D
 ├── Camera/             ✅ Système complet (CameraController, CameraBounds, Input Actions)
-├── Grid/               📁 Vide (à implémenter)
-├── Units/              📁 Vide (à implémenter)
-├── Map/                📁 Vide (à implémenter)
+├── Grid/               ✅ GridManager + GridCell (système de grille logique)
+├── Map/                ✅ TerrainSpriteImporter + Documentation (Tilemap)
+├── Units/              📁 Vide (prochaine étape)
 ├── UI/                 📁 Structure créée
 ├── Audio/              📁 Structure créée
 └── Scenes/             📁 Structure créée
@@ -53,63 +53,118 @@ Assets/_Project/
 
 ### Objectif Version 1
 Créer un prototype jouable avec les fonctionnalités de base :
-- Caméra déplaçable (WASD/souris)
-- Grille visible
-- Une unité (Infantry) plaçable et déplaçable
+- ✅ Caméra déplaçable (WASD/souris)
+- ✅ Grille logique et tilemap
+- ⏳ Une unité (Infantry) plaçable et déplaçable
 
 ---
 
 ## 📋 Plan détaillé des prochains commits
 
+### ✅ Commit 7 : Système de grille et tilemap (TERMINÉ)
 
-### Commit 7 : Système de grille
+**Objectif:** Grille logique pour déplacement des unités + support tilemap
 
-**Objectif:** Grille visible pour déplacement des unités
+**Créé dans `Grid/Scripts/`:**
 
-**À créer dans `Grid/Scripts/`:**
-
-1. **GridManager.cs**
+1. ✅ **GridManager.cs**
    - Namespace: `CommandAndConquer.Grid`
    - Génère la grille au démarrage
-   - Dimensions configurables (width, height)
-   - Taille des cellules configurable (cellSize)
+   - Dimensions configurables (width=20, height=20)
+   - Cell size: 1.0 unité Unity
    - Méthodes: `GetGridPosition(Vector3 worldPos)`, `GetWorldPosition(GridPosition gridPos)`
+   - Conversion avec offset +0.5f pour centrage des unités
+   - Debug Gizmos pour visualisation de la grille
 
-2. **GridCell.cs**
+2. ✅ **GridCell.cs**
    - Représente une cellule de la grille
-   - Propriétés: position, walkable, occupied
+   - Propriétés: position, occupied
    - Référence à l'unité présente (si occupée)
+   - Méthodes: `TryOccupy()`, `Release()`, `ForceOccupy()`
 
-3. **GridVisualizer.cs**
-   - Affiche la grille visuellement
-   - Utilise Debug.DrawLine ou LineRenderer
-   - Toggle pour activer/désactiver l'affichage
+**Créé dans `Map/Editor/`:**
 
-**À créer dans `Grid/Prefabs/`:**
-- `GridManager.prefab` - GameObject avec GridManager
+3. ✅ **TerrainSpriteImporter.cs**
+   - Script Editor pour auto-configuration des sprites de terrain
+   - Configure PPU=128, FilterMode=Point, Compression=Uncompressed
+   - Menu Tools: "Reconfigure All Terrain Sprites"
 
-**À créer dans `Grid/Materials/`:**
-- `GridLineMat.mat` - Matériau pour les lignes de grille
+**Créé dans `Core/Scripts/`:**
+
+4. ✅ **GridPosition.cs** (modifié)
+   - Adapté pour 2D: utilise `x, y` au lieu de `x, z`
+   - Opérateurs +, -, ==, !=
+   - HashCode pour utilisation dans dictionnaires
+
+**Documentation créée:**
+
+5. ✅ **Map/TILEMAP_SETUP.md**
+   - Guide complet de configuration du Tilemap (10 étapes)
+   - Configuration sprites PPU=128 pour cellules 1.0 unité
+   - Création Tile Palette et Tiles
+   - Setup Grid + Tilemap + GridManager
+   - Section dépannage
+
+6. ✅ **Map/RANDOM_BRUSH_GUIDE.md**
+   - Guide détaillé peinture avec variation aléatoire
+   - 3 méthodes: Sélection multiple, Random Brush, Weighted Random
+   - Exemples de configurations
+   - Astuces et bonnes pratiques
 
 **Configuration recommandée:**
 - Grid size: 20x20
-- Cell size: 1.0f
-- Couleur grille: Blanc semi-transparent
+- Cell size: 1.0 unité Unity
+- Sprites terrain: PPU=128 (128px = 1.0 unité)
+- Tile Anchor: (0.5, 0.5) pour centrage visuel
+- Debug Gizmos: Vert transparent pour grille, rouge pour cellules occupées
+
+**Structure actuelle:**
+```
+Assets/_Project/
+├── Core/               ✅ Templates + GridPosition modifié
+├── Camera/             ✅ Système complet
+├── Grid/               ✅ GridManager + GridCell
+├── Map/                ✅ Scripts Editor + Documentation
+│   ├── Editor/         ✅ TerrainSpriteImporter
+│   ├── Sprites/        📁 Terrain/Clear1/ (sprites utilisateur)
+│   ├── Tiles/          📁 À créer par utilisateur
+│   └── Palettes/       📁 À créer par utilisateur
+├── Units/              📁 Vide (prochaine étape)
+└── Scenes/             📁 Structure créée
+```
 
 **Tests:**
-- Ajouter GridManager à la scène
-- Configurer dimensions (20x20)
-- Lancer Play mode
-- Vérifier affichage de la grille
+- ✅ Sprites Clear1 configurés avec PPU=128
+- ✅ Tilemap créé et peint (manuel)
+- ✅ GridManager ajouté à la scène
+- ✅ Grille visualisée avec Gizmos
+- ✅ Alignement Tilemap ↔ GridManager vérifié
 
 **Commit message:**
 ```
-feat: add grid system for unit movement
+feat: implement grid system with tilemap integration
 
-- Add GridManager to generate and manage grid
-- Add GridCell to represent grid positions
-- Add GridVisualizer for visual feedback
-- Create GridManager prefab with default 20x20 grid
+- Add GridManager and GridCell classes for logical grid (1.0 unit cells)
+- Update GridPosition to use x,y coordinates for 2D (instead of x,z)
+- Fix Grid assembly definition reference to Core module
+- Add TerrainSpriteImporter editor script for auto-configuring sprites (PPU=128)
+- Create comprehensive tilemap setup documentation (TILEMAP_SETUP.md)
+- Add detailed random brush painting guide (RANDOM_BRUSH_GUIDE.md)
+
+Grid system features:
+- Cell size: 1.0 Unity unit (128px sprites with PPU=128)
+- Centered positioning (+0.5f offset) for optimal unit placement
+- Cell occupation tracking for future unit movement
+- Debug gizmos for grid visualization and occupied cells
+- Simple conversion methods between world and grid positions
+
+Documentation includes:
+- Step-by-step tilemap configuration (10 detailed steps)
+- Random variation painting techniques (3 methods)
+- Troubleshooting section
+- Weighted random brush examples
+
+The grid system is ready for unit implementation (Commit 8).
 ```
 
 ---

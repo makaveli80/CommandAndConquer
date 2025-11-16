@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f483915f9d153648b0d25edc86b2167, type: 3}
   m_Name: DefaultCameraBounds
   m_EditorClassIdentifier: CommandAndConquer.Camera::CommandAndConquer.Camera.CameraBounds
-  minX: -10
-  maxX: 10
-  minY: -6
-  maxY: 6
+  minX: 8
+  maxX: 30
+  minY: 4
+  maxY: 18
   minZoom: 3
   maxZoom: 15
