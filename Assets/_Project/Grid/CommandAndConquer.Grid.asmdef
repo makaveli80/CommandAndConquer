@@ -2,7 +2,7 @@
   "name": "CommandAndConquer.Grid",
   "rootNamespace": "CommandAndConquer.Grid",
   "references": [
-    "GUID:CommandAndConquer.Core"
+    "CommandAndConquer.Core"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
