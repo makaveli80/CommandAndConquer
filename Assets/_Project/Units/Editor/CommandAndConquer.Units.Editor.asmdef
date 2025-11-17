@@ -2,7 +2,8 @@
     "name": "CommandAndConquer.Units.Editor",
     "rootNamespace": "CommandAndConquer.Units.Editor",
     "references": [
-        "GUID:4a407c2f99eb24e40a0b1a60f7e8f3a5"
+        "CommandAndConquer.Units",
+        "CommandAndConquer.Core"
     ],
     "includePlatforms": [
         "Editor"

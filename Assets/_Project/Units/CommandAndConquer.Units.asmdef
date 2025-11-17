@@ -2,7 +2,7 @@
   "name": "CommandAndConquer.Units",
   "rootNamespace": "CommandAndConquer.Units",
   "references": [
-    "GUID:CommandAndConquer.Core"
+    "CommandAndConquer.Core"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
