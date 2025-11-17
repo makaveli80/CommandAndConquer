@@ -3,7 +3,8 @@
   "rootNamespace": "CommandAndConquer.Units",
   "references": [
     "CommandAndConquer.Core",
-    "CommandAndConquer.Grid"
+    "CommandAndConquer.Grid",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

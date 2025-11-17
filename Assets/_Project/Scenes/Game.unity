@@ -8993,7 +8993,7 @@ Transform:
   m_GameObject: {fileID: 961739749}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 19, y: 11, z: -10}
+  m_LocalPosition: {x: 9, y: 5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9020,6 +9020,23 @@ MonoBehaviour:
   enableEdgeScrolling: 0
   enableKeyboardMovement: 1
   enableZoom: 1
+--- !u!1 &1330552935 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
+  m_PrefabInstance: {fileID: 5433033041249706593}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1330552941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1330552935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 883b112d3a8aeb94f8f9c7e0ec432a51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyTestMovement
 --- !u!1 &1439402521
 GameObject:
   m_ObjectHideFlags: 0
@@ -9203,7 +9220,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1330552941}
   m_SourcePrefab: {fileID: 100100000, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
