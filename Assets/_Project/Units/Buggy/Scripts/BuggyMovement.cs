@@ -6,6 +6,16 @@ using CommandAndConquer.Grid;
 namespace CommandAndConquer.Units.Buggy
 {
     /// <summary>
+    /// États possibles du système de mouvement.
+    /// </summary>
+    public enum MovementState
+    {
+        Idle,        // Pas de mouvement, unité immobile
+        Moving,      // En mouvement vers la destination
+        Blocked      // Mouvement impossible (chemin bloqué ou destination occupée)
+    }
+
+    /// <summary>
     /// Gère le déplacement du Buggy sur la grille case par case.
     /// Utilise un pathfinding en ligne droite avec déplacement dans les 8 directions.
     /// </summary>
@@ -16,21 +26,20 @@ namespace CommandAndConquer.Units.Buggy
         private GridManager gridManager;
         private BuggyData data;
 
+        // Machine à états
+        private MovementState state = MovementState.Idle;
+        private GridPosition destination;
+
         // Chemin de déplacement
         private List<GridPosition> movementPath;
         private int currentPathIndex;
 
-        // Mouvement vers une case
-        private bool isMovingToCell;
+        // Cellule cible actuelle
         private GridPosition targetCellPosition;
         private Vector3 targetWorldPosition;
 
-        // Nouvelle destination en attente
-        private bool hasPendingTarget;
-        private GridPosition pendingTargetPosition;
-
         // Propriété publique
-        public bool IsMoving => isMovingToCell || (movementPath != null && movementPath.Count > 0);
+        public bool IsMoving => state == MovementState.Moving;
 
         private void Awake()
         {
@@ -48,8 +57,7 @@ namespace CommandAndConquer.Units.Buggy
 
         /// <summary>
         /// Déplace l'unité vers une position cible sur la grille.
-        /// Si un mouvement est en cours, la nouvelle destination sera appliquée
-        /// une fois que l'unité aura atteint le centre de la case actuelle.
+        /// Si un mouvement est en cours, l'ancien mouvement est annulé et un nouveau est calculé.
         /// </summary>
         public void MoveTo(GridPosition targetPosition)
         {
@@ -73,19 +81,20 @@ namespace CommandAndConquer.Units.Buggy
                 return;
             }
 
-            // Si un mouvement est en cours, mettre la nouvelle destination en attente
-            if (isMovingToCell)
+            // Si déjà en mouvement, annuler l'ancien mouvement
+            if (state == MovementState.Moving)
             {
-                pendingTargetPosition = targetPosition;
-                hasPendingTarget = true;
-                Debug.Log($"[BuggyMovement] New destination pending: {targetPosition} (will apply after reaching current cell)");
-                return;
+                CancelCurrentMovement();
             }
+
+            // Sauvegarder la destination
+            destination = targetPosition;
 
             // Vérifier que la cellule cible est libre
             if (!gridManager.IsFree(targetPosition))
             {
                 Debug.LogWarning($"[BuggyMovement] Target cell {targetPosition} is occupied!");
+                state = MovementState.Blocked;
                 return;
             }
 
@@ -94,13 +103,15 @@ namespace CommandAndConquer.Units.Buggy
 
             if (movementPath == null || movementPath.Count == 0)
             {
-                Debug.LogWarning("[BuggyMovement] No valid path found!");
+                Debug.LogWarning($"[BuggyMovement] No valid path to {targetPosition}");
+                state = MovementState.Blocked;
                 return;
             }
 
             // Démarrer le mouvement
             currentPathIndex = 0;
-            MoveToNextCell();
+            state = MovementState.Moving;
+            StartMovingToNextCell();
 
             Debug.Log($"[BuggyMovement] Moving from {controller.CurrentGridPosition} to {targetPosition} ({movementPath.Count} steps)");
         }
@@ -157,14 +168,15 @@ namespace CommandAndConquer.Units.Buggy
         }
 
         /// <summary>
-        /// Démarre le mouvement vers la prochaine case du chemin.
+        /// Démarre le mouvement vers la prochaine cellule du chemin.
         /// Gère l'occupation et la libération des cellules.
         /// </summary>
-        private void MoveToNextCell()
+        private void StartMovingToNextCell()
         {
             if (movementPath == null || currentPathIndex >= movementPath.Count)
             {
-                // Fin du chemin
+                // Fin du chemin (ne devrait pas arriver ici normalement)
+                state = MovementState.Idle;
                 movementPath = null;
                 return;
             }
@@ -185,7 +197,14 @@ namespace CommandAndConquer.Units.Buggy
             {
                 if (!targetCell.TryOccupy(controller))
                 {
-                    Debug.LogError($"[BuggyMovement] Failed to occupy cell {targetCellPosition}!");
+                    // Échec : réoccuper la cellule actuelle et passer en état Blocked
+                    if (currentCell != null)
+                    {
+                        currentCell.TryOccupy(controller);
+                    }
+
+                    Debug.LogWarning($"[BuggyMovement] Blocked - Failed to occupy cell {targetCellPosition}!");
+                    state = MovementState.Blocked;
                     movementPath = null;
                     return;
                 }
@@ -193,60 +212,38 @@ namespace CommandAndConquer.Units.Buggy
 
             // Calculer la position monde cible (centrée avec +0.5)
             targetWorldPosition = gridManager.GetWorldPosition(targetCellPosition);
-
-            // Activer le mouvement
-            isMovingToCell = true;
         }
 
         private void Update()
         {
-            if (!isMovingToCell)
-                return;
+            switch (state)
+            {
+                case MovementState.Idle:
+                    // Rien à faire
+                    break;
 
+                case MovementState.Moving:
+                    HandleMoving();
+                    break;
+
+                case MovementState.Blocked:
+                    // Rien à faire (pour l'instant, le retry sera ajouté plus tard)
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Gère le mouvement progressif vers la cellule cible.
+        /// </summary>
+        private void HandleMoving()
+        {
             // Calculer la distance restante
             float distance = Vector3.Distance(transform.position, targetWorldPosition);
 
-            // Vérifier si on est arrivé (seuil de 0.01 unité)
+            // Vérifier si on est arrivé à la cellule (seuil de 0.01 unité)
             if (distance < 0.01f)
             {
-                // Snap à la position exacte
-                transform.position = targetWorldPosition;
-
-                // Mettre à jour la position grille dans le controller
-                controller.UpdateGridPosition(targetCellPosition);
-
-                // Arrêter le mouvement vers cette case
-                isMovingToCell = false;
-
-                // Vérifier s'il y a une nouvelle destination en attente
-                if (hasPendingTarget)
-                {
-                    hasPendingTarget = false;
-                    GridPosition newTarget = pendingTargetPosition;
-
-                    // Annuler le mouvement actuel
-                    CancelCurrentMovement();
-
-                    // Démarrer le nouveau mouvement
-                    Debug.Log($"[BuggyMovement] Applying pending destination: {newTarget}");
-                    MoveTo(newTarget);
-                    return;
-                }
-
-                // Passer à la case suivante
-                currentPathIndex++;
-
-                if (currentPathIndex < movementPath.Count)
-                {
-                    // Encore des cases à traverser
-                    MoveToNextCell();
-                }
-                else
-                {
-                    // Arrivé à destination finale
-                    movementPath = null;
-                    Debug.Log($"[BuggyMovement] Reached final destination: {targetCellPosition}");
-                }
+                OnReachedCell();
             }
             else
             {
@@ -263,30 +260,59 @@ namespace CommandAndConquer.Units.Buggy
         }
 
         /// <summary>
+        /// Appelé quand l'unité atteint une cellule du chemin.
+        /// </summary>
+        private void OnReachedCell()
+        {
+            // Snap à la position exacte
+            transform.position = targetWorldPosition;
+
+            // Mettre à jour la position grille dans le controller
+            controller.UpdateGridPosition(targetCellPosition);
+
+            // Passer à la cellule suivante
+            currentPathIndex++;
+
+            if (currentPathIndex < movementPath.Count)
+            {
+                // Encore des cellules à traverser
+                StartMovingToNextCell();
+            }
+            else
+            {
+                // Arrivé à la destination finale
+                state = MovementState.Idle;
+                movementPath = null;
+                Debug.Log($"[BuggyMovement] Reached destination: {destination}");
+            }
+        }
+
+        /// <summary>
         /// Annule le mouvement en cours et libère toutes les cellules réservées.
+        /// IMPORTANT: Ne libère PAS la cellule actuelle où se trouve le Buggy.
         /// </summary>
         private void CancelCurrentMovement()
         {
-            // Libérer toutes les cellules qui étaient réservées dans le chemin
-            if (movementPath != null)
+            if (state != MovementState.Moving || movementPath == null)
+                return;
+
+            // Libérer UNIQUEMENT les cellules futures (pas la cellule actuelle)
+            // currentPathIndex pointe vers la cellule actuelle, donc on commence à +1
+            for (int i = currentPathIndex + 1; i < movementPath.Count; i++)
             {
-                // Libérer les cellules non encore visitées du chemin
-                for (int i = currentPathIndex; i < movementPath.Count; i++)
+                GridCell cell = gridManager.GetCell(movementPath[i]);
+                if (cell != null && cell.IsOccupied)
                 {
-                    GridCell cell = gridManager.GetCell(movementPath[i]);
-                    if (cell != null && cell.IsOccupied)
-                    {
-                        cell.Release();
-                    }
+                    cell.Release();
                 }
             }
 
             // Réinitialiser l'état
             movementPath = null;
             currentPathIndex = 0;
-            isMovingToCell = false;
+            state = MovementState.Idle;
 
-            Debug.Log("[BuggyMovement] Current movement cancelled");
+            Debug.Log($"[BuggyMovement] Movement cancelled. Staying at {controller.CurrentGridPosition}");
         }
 
     }
