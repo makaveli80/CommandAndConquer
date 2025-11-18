@@ -81,13 +81,34 @@ namespace CommandAndConquer.Units.Buggy
                 return;
             }
 
-            // Si déjà en mouvement, annuler l'ancien mouvement
+            // Si déjà en mouvement, recalculer le chemin depuis la cellule en cours
             if (state == MovementState.Moving)
             {
-                CancelCurrentMovement();
+                destination = targetPosition;
+
+                // Calculer le nouveau chemin depuis la cellule qu'on est en train d'atteindre
+                List<GridPosition> newPath = CalculatePath(targetCellPosition, targetPosition);
+
+                if (newPath == null || newPath.Count == 0)
+                {
+                    Debug.LogWarning($"[BuggyMovement] No valid path to {targetPosition}");
+                    state = MovementState.Blocked;
+                    return;
+                }
+
+                // Insérer la cellule cible actuelle comme premier élément
+                // (on continue vers elle, puis on suit le nouveau chemin)
+                newPath.Insert(0, targetCellPosition);
+
+                // Remplacer le chemin
+                movementPath = newPath;
+                currentPathIndex = 0; // On continue vers targetCellPosition (index 0)
+
+                Debug.Log($"[BuggyMovement] Direction changed to {targetPosition} ({movementPath.Count} steps)");
+                return;
             }
 
-            // Sauvegarder la destination
+            // Sinon, démarrer un nouveau mouvement
             destination = targetPosition;
 
             // Calculer le chemin
@@ -244,22 +265,6 @@ namespace CommandAndConquer.Units.Buggy
                 movementPath = null;
                 Debug.Log($"[BuggyMovement] Reached destination: {destination}");
             }
-        }
-
-        /// <summary>
-        /// Annule le mouvement en cours.
-        /// </summary>
-        private void CancelCurrentMovement()
-        {
-            if (state != MovementState.Moving || movementPath == null)
-                return;
-
-            // Réinitialiser l'état
-            movementPath = null;
-            currentPathIndex = 0;
-            state = MovementState.Idle;
-
-            Debug.Log($"[BuggyMovement] Movement cancelled");
         }
 
         /// <summary>
