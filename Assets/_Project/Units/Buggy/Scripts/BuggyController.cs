@@ -49,13 +49,6 @@ namespace CommandAndConquer.Units.Buggy
             // Initialiser la position sur la grille
             currentGridPosition = gridManager.GetGridPosition(transform.position);
 
-            // Occuper la cellule de départ
-            var cell = gridManager.GetCell(currentGridPosition);
-            if (cell != null)
-            {
-                cell.TryOccupy(this);
-            }
-
             // Configurer le nom de l'unité
             if (buggyData != null)
             {

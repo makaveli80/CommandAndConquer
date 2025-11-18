@@ -90,14 +90,6 @@ namespace CommandAndConquer.Units.Buggy
             // Sauvegarder la destination
             destination = targetPosition;
 
-            // Vérifier que la cellule cible est libre
-            if (!gridManager.IsFree(targetPosition))
-            {
-                Debug.LogWarning($"[BuggyMovement] Target cell {targetPosition} is occupied!");
-                state = MovementState.Blocked;
-                return;
-            }
-
             // Calculer le chemin
             movementPath = CalculatePath(controller.CurrentGridPosition, targetPosition);
 
@@ -140,17 +132,11 @@ namespace CommandAndConquer.Units.Buggy
                 // Calculer la prochaine position
                 GridPosition next = new GridPosition(current.x + deltaX, current.y + deltaY);
 
-                // Vérifier que la case est valide et libre
+                // Vérifier que la case est valide
                 if (!gridManager.IsValidGridPosition(next))
                 {
-                    Debug.LogWarning($"[BuggyMovement] Path blocked: {next} is out of bounds");
+                    Debug.LogWarning($"[BuggyMovement] Path invalid: {next} is out of bounds");
                     return null; // Chemin impossible
-                }
-
-                if (!gridManager.IsFree(next))
-                {
-                    Debug.LogWarning($"[BuggyMovement] Path blocked: {next} is occupied");
-                    return null; // Chemin bloqué
                 }
 
                 // Ajouter au chemin
@@ -169,7 +155,6 @@ namespace CommandAndConquer.Units.Buggy
 
         /// <summary>
         /// Démarre le mouvement vers la prochaine cellule du chemin.
-        /// Gère l'occupation et la libération des cellules.
         /// </summary>
         private void StartMovingToNextCell()
         {
@@ -181,34 +166,8 @@ namespace CommandAndConquer.Units.Buggy
                 return;
             }
 
-            // Libérer la cellule actuelle
-            GridCell currentCell = gridManager.GetCell(controller.CurrentGridPosition);
-            if (currentCell != null)
-            {
-                currentCell.Release();
-            }
-
             // Récupérer la prochaine case du chemin
             targetCellPosition = movementPath[currentPathIndex];
-
-            // Occuper la nouvelle cellule
-            GridCell targetCell = gridManager.GetCell(targetCellPosition);
-            if (targetCell != null)
-            {
-                if (!targetCell.TryOccupy(controller))
-                {
-                    // Échec : réoccuper la cellule actuelle et passer en état Blocked
-                    if (currentCell != null)
-                    {
-                        currentCell.TryOccupy(controller);
-                    }
-
-                    Debug.LogWarning($"[BuggyMovement] Blocked - Failed to occupy cell {targetCellPosition}!");
-                    state = MovementState.Blocked;
-                    movementPath = null;
-                    return;
-                }
-            }
 
             // Calculer la position monde cible (centrée avec +0.5)
             targetWorldPosition = gridManager.GetWorldPosition(targetCellPosition);
@@ -288,31 +247,95 @@ namespace CommandAndConquer.Units.Buggy
         }
 
         /// <summary>
-        /// Annule le mouvement en cours et libère toutes les cellules réservées.
-        /// IMPORTANT: Ne libère PAS la cellule actuelle où se trouve le Buggy.
+        /// Annule le mouvement en cours.
         /// </summary>
         private void CancelCurrentMovement()
         {
             if (state != MovementState.Moving || movementPath == null)
                 return;
 
-            // Libérer UNIQUEMENT les cellules futures (pas la cellule actuelle)
-            // currentPathIndex pointe vers la cellule actuelle, donc on commence à +1
-            for (int i = currentPathIndex + 1; i < movementPath.Count; i++)
-            {
-                GridCell cell = gridManager.GetCell(movementPath[i]);
-                if (cell != null && cell.IsOccupied)
-                {
-                    cell.Release();
-                }
-            }
-
             // Réinitialiser l'état
             movementPath = null;
             currentPathIndex = 0;
             state = MovementState.Idle;
 
-            Debug.Log($"[BuggyMovement] Movement cancelled. Staying at {controller.CurrentGridPosition}");
+            Debug.Log($"[BuggyMovement] Movement cancelled");
+        }
+
+        /// <summary>
+        /// Gizmos pour visualiser le déplacement en mode Scene.
+        /// </summary>
+        private void OnDrawGizmos()
+        {
+            if (gridManager == null || controller == null)
+                return;
+
+            // Couleur selon l'état
+            Color stateColor = state switch
+            {
+                MovementState.Idle => Color.white,
+                MovementState.Moving => Color.green,
+                MovementState.Blocked => Color.red,
+                _ => Color.gray
+            };
+
+            // Position actuelle du Buggy
+            Gizmos.color = stateColor;
+            Gizmos.DrawWireSphere(transform.position, 0.3f);
+
+            // Afficher le chemin complet
+            if (movementPath != null && movementPath.Count > 0)
+            {
+                // Dessiner toutes les cellules du chemin
+                for (int i = 0; i < movementPath.Count; i++)
+                {
+                    Vector3 cellWorldPos = gridManager.GetWorldPosition(movementPath[i]);
+
+                    // Couleur différente pour les cellules visitées vs futures
+                    if (i < currentPathIndex)
+                    {
+                        Gizmos.color = Color.gray; // Déjà visité
+                    }
+                    else if (i == currentPathIndex)
+                    {
+                        Gizmos.color = Color.yellow; // Cellule cible actuelle
+                    }
+                    else
+                    {
+                        Gizmos.color = Color.cyan; // Cellules futures
+                    }
+
+                    // Dessiner la cellule
+                    Gizmos.DrawWireCube(cellWorldPos, Vector3.one * 0.9f);
+                }
+
+                // Dessiner les lignes du chemin restant (depuis la position actuelle)
+                Vector3 previousPos = transform.position;
+                Gizmos.color = Color.yellow;
+
+                for (int i = currentPathIndex; i < movementPath.Count; i++)
+                {
+                    Vector3 cellWorldPos = gridManager.GetWorldPosition(movementPath[i]);
+                    Gizmos.DrawLine(previousPos, cellWorldPos);
+                    previousPos = cellWorldPos;
+                }
+
+                // Marquer la destination finale
+                Vector3 finalDestPos = gridManager.GetWorldPosition(destination);
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawWireSphere(finalDestPos, 0.5f);
+            }
+
+            // Cellule cible actuelle (si en mouvement)
+            if (state == MovementState.Moving)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(targetWorldPosition, 0.2f);
+
+                // Ligne de la position actuelle vers la cible
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(transform.position, targetWorldPosition);
+            }
         }
 
     }
