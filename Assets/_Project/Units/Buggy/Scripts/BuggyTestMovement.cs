@@ -84,11 +84,11 @@ namespace CommandAndConquer.Units.Buggy
                 buggyMovement.MoveTo(new GridPosition(19, 19));
             }
 
-            // Numpad 0 : retour position initiale
+            // Numpad 0 : en dehors de la grille
             if (keyboard.numpad0Key.wasPressedThisFrame)
             {
-                Debug.Log("[Test] Numpad 0 : Retour position initiale (5, 5)");
-                buggyMovement.MoveTo(new GridPosition(5, 5));
+                Debug.Log("[Test] Numpad 0 : En dehors de la grille (-5, -5)");
+                buggyMovement.MoveTo(new GridPosition(-5, -5));
             }
 
             // Afficher l'aide
@@ -99,7 +99,7 @@ namespace CommandAndConquer.Units.Buggy
                     "  7  8  9   →   Haut-gauche    Haut         Haut-droite\n" +
                     "  4  5  6   →   Gauche         Centre       Droite\n" +
                     "  1  2  3   →   Bas-gauche     Bas          Bas-droite\n" +
-                    "  0         →   Retour position initiale (5,5)\n" +
+                    "  0         →   En dehors de la grille (-5,-5)\n" +
                     "  H         →   Afficher cette aide");
             }
         }

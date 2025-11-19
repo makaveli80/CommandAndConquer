@@ -21,6 +21,8 @@ namespace CommandAndConquer.Units.Buggy
     /// </summary>
     public class BuggyMovement : MonoBehaviour
     {
+        #region Fields
+
         // Références
         private BuggyController controller;
         private GridManager gridManager;
@@ -38,8 +40,23 @@ namespace CommandAndConquer.Units.Buggy
         private GridPosition targetCellPosition;
         private Vector3 targetWorldPosition;
 
-        // Propriété publique
+        #endregion
+
+        #region Properties
+
+        // Propriété publique principale
         public bool IsMoving => state == MovementState.Moving;
+
+        // Propriétés pour debug (lecture seule)
+        public MovementState CurrentState => state;
+        public GridPosition CurrentDestination => destination;
+        public IReadOnlyList<GridPosition> CurrentPath => movementPath;
+        public int PathIndex => currentPathIndex;
+        public Vector3 CurrentTargetWorldPosition => targetWorldPosition;
+
+        #endregion
+
+        #region Unity Lifecycle (Entry Points)
 
         private void Awake()
         {
@@ -55,151 +72,11 @@ namespace CommandAndConquer.Units.Buggy
             }
         }
 
-        /// <summary>
-        /// Déplace l'unité vers une position cible sur la grille.
-        /// Si un mouvement est en cours, l'ancien mouvement est annulé et un nouveau est calculé.
-        /// </summary>
-        public void MoveTo(GridPosition targetPosition)
-        {
-            if (gridManager == null)
-            {
-                Debug.LogError("[BuggyMovement] GridManager not found!");
-                return;
-            }
-
-            // Vérifier que la cible est différente de la position actuelle
-            if (targetPosition == controller.CurrentGridPosition)
-            {
-                Debug.Log("[BuggyMovement] Already at target position");
-                return;
-            }
-
-            // Vérifier que la position cible est valide
-            if (!gridManager.IsValidGridPosition(targetPosition))
-            {
-                Debug.LogWarning($"[BuggyMovement] Invalid target position: {targetPosition}");
-                return;
-            }
-
-            // Si déjà en mouvement, recalculer le chemin depuis la cellule en cours
-            if (state == MovementState.Moving)
-            {
-                destination = targetPosition;
-
-                // Calculer le nouveau chemin depuis la cellule qu'on est en train d'atteindre
-                List<GridPosition> newPath = CalculatePath(targetCellPosition, targetPosition);
-
-                if (newPath == null || newPath.Count == 0)
-                {
-                    Debug.LogWarning($"[BuggyMovement] No valid path to {targetPosition}");
-                    state = MovementState.Blocked;
-                    return;
-                }
-
-                // Insérer la cellule cible actuelle comme premier élément
-                // (on continue vers elle, puis on suit le nouveau chemin)
-                newPath.Insert(0, targetCellPosition);
-
-                // Remplacer le chemin
-                movementPath = newPath;
-                currentPathIndex = 0; // On continue vers targetCellPosition (index 0)
-
-                Debug.Log($"[BuggyMovement] Direction changed to {targetPosition} ({movementPath.Count} steps)");
-                return;
-            }
-
-            // Sinon, démarrer un nouveau mouvement
-            destination = targetPosition;
-
-            // Calculer le chemin
-            movementPath = CalculatePath(controller.CurrentGridPosition, targetPosition);
-
-            if (movementPath == null || movementPath.Count == 0)
-            {
-                Debug.LogWarning($"[BuggyMovement] No valid path to {targetPosition}");
-                state = MovementState.Blocked;
-                return;
-            }
-
-            // Démarrer le mouvement
-            currentPathIndex = 0;
-            state = MovementState.Moving;
-            StartMovingToNextCell();
-
-            Debug.Log($"[BuggyMovement] Moving from {controller.CurrentGridPosition} to {targetPosition} ({movementPath.Count} steps)");
-        }
-
-        /// <summary>
-        /// Calcule un chemin en ligne droite vers la cible.
-        /// Déplacement dans les 8 directions (N, NE, E, SE, S, SW, W, NW).
-        /// </summary>
-        private List<GridPosition> CalculatePath(GridPosition start, GridPosition end)
-        {
-            List<GridPosition> path = new List<GridPosition>();
-            GridPosition current = start;
-
-            // Limite de sécurité pour éviter les boucles infinies
-            int maxIterations = 1000;
-            int iterations = 0;
-
-            while (current != end && iterations < maxIterations)
-            {
-                iterations++;
-
-                // Calculer la direction vers la cible (valeurs: -1, 0, ou +1)
-                int deltaX = System.Math.Sign(end.x - current.x);
-                int deltaY = System.Math.Sign(end.y - current.y);
-
-                // Calculer la prochaine position
-                GridPosition next = new GridPosition(current.x + deltaX, current.y + deltaY);
-
-                // Vérifier que la case est valide
-                if (!gridManager.IsValidGridPosition(next))
-                {
-                    Debug.LogWarning($"[BuggyMovement] Path invalid: {next} is out of bounds");
-                    return null; // Chemin impossible
-                }
-
-                // Ajouter au chemin
-                path.Add(next);
-                current = next;
-            }
-
-            if (iterations >= maxIterations)
-            {
-                Debug.LogError("[BuggyMovement] Path calculation exceeded max iterations!");
-                return null;
-            }
-
-            return path;
-        }
-
-        /// <summary>
-        /// Démarre le mouvement vers la prochaine cellule du chemin.
-        /// </summary>
-        private void StartMovingToNextCell()
-        {
-            if (movementPath == null || currentPathIndex >= movementPath.Count)
-            {
-                // Fin du chemin (ne devrait pas arriver ici normalement)
-                state = MovementState.Idle;
-                movementPath = null;
-                return;
-            }
-
-            // Récupérer la prochaine case du chemin
-            targetCellPosition = movementPath[currentPathIndex];
-
-            // Calculer la position monde cible (centrée avec +0.5)
-            targetWorldPosition = gridManager.GetWorldPosition(targetCellPosition);
-        }
-
         private void Update()
         {
             switch (state)
             {
                 case MovementState.Idle:
-                    // Rien à faire
                     break;
 
                 case MovementState.Moving:
@@ -207,27 +84,76 @@ namespace CommandAndConquer.Units.Buggy
                     break;
 
                 case MovementState.Blocked:
-                    // Rien à faire (pour l'instant, le retry sera ajouté plus tard)
                     break;
             }
         }
+
+        #endregion
+
+        #region Public API (Entry Points)
+
+        /// <summary>
+        /// Déplace l'unité vers une position cible sur la grille.
+        /// Si un mouvement est en cours, l'ancien mouvement est annulé et un nouveau est calculé.
+        /// </summary>
+        public void MoveTo(GridPosition targetPosition)
+        {
+            // Validation de la requête
+            if (!IsValidMoveRequest(targetPosition))
+                return;
+
+            // Si déjà en mouvement, recalculer depuis la cellule cible actuelle
+            if (state == MovementState.Moving)
+            {
+                if (!TryCalculatePath(targetCellPosition, targetPosition, out List<GridPosition> newPath))
+                {
+                    // Impossible d'atteindre la nouvelle destination - on continue vers l'ancienne
+                    Debug.LogWarning($"[BuggyMovement] Cannot change direction to {targetPosition}, continuing to {destination}");
+                    return;
+                }
+
+                // Changement de direction réussi
+                destination = targetPosition;
+                newPath.Insert(0, targetCellPosition);
+                movementPath = newPath;
+                currentPathIndex = 0;
+
+                Debug.Log($"[BuggyMovement] Direction changed to {targetPosition} ({movementPath.Count} steps)");
+                return;
+            }
+
+            // Démarrer un nouveau mouvement
+            if (!TryCalculatePath(controller.CurrentGridPosition, targetPosition, out movementPath))
+            {
+                state = MovementState.Blocked;
+                return;
+            }
+
+            destination = targetPosition;
+            currentPathIndex = 0;
+            state = MovementState.Moving;
+            StartMovingToNextCell();
+
+            Debug.Log($"[BuggyMovement] Moving from {controller.CurrentGridPosition} to {targetPosition} ({movementPath.Count} steps)");
+        }
+
+        #endregion
+
+        #region Private: Movement Execution
 
         /// <summary>
         /// Gère le mouvement progressif vers la cellule cible.
         /// </summary>
         private void HandleMoving()
         {
-            // Calculer la distance restante
             float distance = Vector3.Distance(transform.position, targetWorldPosition);
 
-            // Vérifier si on est arrivé à la cellule (seuil de 0.01 unité)
             if (distance < 0.01f)
             {
                 OnReachedCell();
             }
             else
             {
-                // Déplacement progressif vers la cible
                 float moveSpeed = data != null ? data.moveSpeed : 3f;
                 float step = moveSpeed * Time.deltaTime;
 
@@ -244,23 +170,16 @@ namespace CommandAndConquer.Units.Buggy
         /// </summary>
         private void OnReachedCell()
         {
-            // Snap à la position exacte
             transform.position = targetWorldPosition;
-
-            // Mettre à jour la position grille dans le controller
             controller.UpdateGridPosition(targetCellPosition);
-
-            // Passer à la cellule suivante
             currentPathIndex++;
 
             if (currentPathIndex < movementPath.Count)
             {
-                // Encore des cellules à traverser
                 StartMovingToNextCell();
             }
             else
             {
-                // Arrivé à la destination finale
                 state = MovementState.Idle;
                 movementPath = null;
                 Debug.Log($"[BuggyMovement] Reached destination: {destination}");
@@ -268,80 +187,70 @@ namespace CommandAndConquer.Units.Buggy
         }
 
         /// <summary>
-        /// Gizmos pour visualiser le déplacement en mode Scene.
+        /// Démarre le mouvement vers la prochaine cellule du chemin.
         /// </summary>
-        private void OnDrawGizmos()
+        private void StartMovingToNextCell()
         {
-            if (gridManager == null || controller == null)
+            if (movementPath == null || currentPathIndex >= movementPath.Count)
+            {
+                state = MovementState.Idle;
+                movementPath = null;
                 return;
-
-            // Couleur selon l'état
-            Color stateColor = state switch
-            {
-                MovementState.Idle => Color.white,
-                MovementState.Moving => Color.green,
-                MovementState.Blocked => Color.red,
-                _ => Color.gray
-            };
-
-            // Position actuelle du Buggy
-            Gizmos.color = stateColor;
-            Gizmos.DrawWireSphere(transform.position, 0.3f);
-
-            // Afficher le chemin complet
-            if (movementPath != null && movementPath.Count > 0)
-            {
-                // Dessiner toutes les cellules du chemin
-                for (int i = 0; i < movementPath.Count; i++)
-                {
-                    Vector3 cellWorldPos = gridManager.GetWorldPosition(movementPath[i]);
-
-                    // Couleur différente pour les cellules visitées vs futures
-                    if (i < currentPathIndex)
-                    {
-                        Gizmos.color = Color.gray; // Déjà visité
-                    }
-                    else if (i == currentPathIndex)
-                    {
-                        Gizmos.color = Color.yellow; // Cellule cible actuelle
-                    }
-                    else
-                    {
-                        Gizmos.color = Color.cyan; // Cellules futures
-                    }
-
-                    // Dessiner la cellule
-                    Gizmos.DrawWireCube(cellWorldPos, Vector3.one * 0.9f);
-                }
-
-                // Dessiner les lignes du chemin restant (depuis la position actuelle)
-                Vector3 previousPos = transform.position;
-                Gizmos.color = Color.yellow;
-
-                for (int i = currentPathIndex; i < movementPath.Count; i++)
-                {
-                    Vector3 cellWorldPos = gridManager.GetWorldPosition(movementPath[i]);
-                    Gizmos.DrawLine(previousPos, cellWorldPos);
-                    previousPos = cellWorldPos;
-                }
-
-                // Marquer la destination finale
-                Vector3 finalDestPos = gridManager.GetWorldPosition(destination);
-                Gizmos.color = Color.magenta;
-                Gizmos.DrawWireSphere(finalDestPos, 0.5f);
             }
 
-            // Cellule cible actuelle (si en mouvement)
-            if (state == MovementState.Moving)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(targetWorldPosition, 0.2f);
-
-                // Ligne de la position actuelle vers la cible
-                Gizmos.color = Color.green;
-                Gizmos.DrawLine(transform.position, targetWorldPosition);
-            }
+            targetCellPosition = movementPath[currentPathIndex];
+            targetWorldPosition = gridManager.GetWorldPosition(targetCellPosition);
         }
 
+        #endregion
+
+        #region Private: Validation & Pathfinding
+
+        /// <summary>
+        /// Valide si la requête de mouvement est possible.
+        /// </summary>
+        private bool IsValidMoveRequest(GridPosition targetPosition)
+        {
+            if (gridManager == null)
+            {
+                Debug.LogError("[BuggyMovement] GridManager not found!");
+                return false;
+            }
+
+            if (targetPosition == controller.CurrentGridPosition)
+            {
+                Debug.Log("[BuggyMovement] Already at target position");
+                return false;
+            }
+
+            if (!gridManager.IsValidGridPosition(targetPosition))
+            {
+                Debug.LogWarning($"[BuggyMovement] Invalid target position: {targetPosition}");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Calcule et valide un chemin entre deux positions.
+        /// </summary>
+        /// <param name="from">Position de départ</param>
+        /// <param name="to">Position d'arrivée</param>
+        /// <param name="path">Le chemin calculé (out)</param>
+        /// <returns>True si le chemin est valide, False sinon</returns>
+        private bool TryCalculatePath(GridPosition from, GridPosition to, out List<GridPosition> path)
+        {
+            path = GridPathfinder.CalculateStraightPath(gridManager, from, to);
+
+            if (path == null || path.Count == 0)
+            {
+                Debug.LogWarning($"[BuggyMovement] No valid path from {from} to {to}");
+                return false;
+            }
+            return true;
+        }
+
+        #endregion
     }
 }
