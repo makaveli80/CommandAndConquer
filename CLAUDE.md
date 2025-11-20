@@ -23,6 +23,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ State machine for unit movement
 - ✅ GridPathfinder utility for path calculation
 - ✅ Modular debug visualization system
+- ✅ Collision detection and avoidance system with retry mechanism
+- ✅ Atomic cell reservation system (prevents race conditions)
 
 ### Next Steps
 See BUGGY_IMPLEMENTATION.md Step 7 and ROADMAP.md for detailed plan.
@@ -65,12 +67,39 @@ Core (foundation)
 - `Grid/Scripts/GridCell.cs` - Individual cell state
 - `Grid/Scripts/GridPathfinder.cs` - Static pathfinding utility
 
-**Important Details**:
+### Important Details
+
+**Grid Configuration**:
 - Grid size: 20x20 cells, each 1.0 Unity unit
 - Cell centering: Grid (5,5) → World (5.5, 5.5) - **always add +0.5f**
 - Conversion methods: `GetGridPosition(Vector3)`, `GetWorldPosition(GridPosition)`
 - Pathfinding: `GridPathfinder.CalculateStraightPath()` for 8-direction movement
-- Debug: Green grid lines from GridManager
+- Debug: Green grid lines from GridManager, red cells for occupied positions
+
+**Collision Management System** (NEW):
+- **Unit Registration**: Units must register with `RegisterUnit()` at spawn and `UnregisterUnit()` at destruction
+- **Atomic Reservation**: `TryMoveUnitTo(unit, position)` reserves cells atomically to prevent race conditions
+- **Coherence Verification**: LateUpdate() verifies grid coherence every ~60 frames as a safety net
+- **Auto-cleanup**: Destroyed units are automatically removed from tracking
+
+**Key Methods**:
+```csharp
+// Unit lifecycle
+bool RegisterUnit(UnitBase unit, GridPosition position)      // Call in Start()
+void UnregisterUnit(UnitBase unit)                           // Call in OnDestroy()
+
+// Movement (ATOMIC - use this!)
+bool TryMoveUnitTo(UnitBase unit, GridPosition newPos)      // Reserves cell atomically
+
+// Query (read-only, no reservation)
+bool IsCellAvailableFor(GridPosition pos, UnitBase unit)    // Check if cell is free
+
+// Debug
+GridPosition GetUnitGridPosition(UnitBase unit)             // Get tracked position
+int GetRegisteredUnitCount()                                 // Count registered units
+```
+
+**IMPORTANT**: Always use `TryMoveUnitTo()` for movement to avoid race conditions. `IsCellAvailableFor()` alone does NOT reserve the cell!
 
 **Coordinate Conversion**:
 ```csharp
@@ -114,30 +143,51 @@ BuggyMovement (state machine)
 
 **State Machine Pattern**:
 ```csharp
-private enum MovementState { Idle, Moving, Blocked }
+private enum MovementState {
+    Idle,                  // Stationary
+    Moving,                // Moving to next cell
+    WaitingForNextCell,    // Next cell occupied, retrying
+    Blocked                // Gave up after max retries
+}
 
 private void Update() {
     switch (state) {
         case MovementState.Idle: break;
         case MovementState.Moving: HandleMoving(); break;
-        case MovementState.Blocked: HandleBlocked(); break;
+        case MovementState.WaitingForNextCell: HandleWaitingForNextCell(); break;
+        case MovementState.Blocked: break;
     }
 }
 ```
 
-**Movement Flow**:
+**Movement Flow with Collision Detection**:
 1. `MoveTo(GridPosition)` called on BuggyController
 2. BuggyMovement validates request and calculates path using `GridPathfinder.CalculateStraightPath()`
-3. State changes to `Moving` and unit begins moving cell-by-cell
-4. For each cell in path:
+3. **Atomic reservation** of first cell with `gridManager.TryMoveUnitTo(unit, firstCell)`:
+   - If successful → State = `Moving`, begin physical movement
+   - If occupied → State = `WaitingForNextCell`, start retry timer
+4. For each cell in path (when `Moving`):
    - Interpolate with `Vector3.MoveTowards()`
    - Snap when distance < 0.01
-   - Update controller's current grid position
-5. When path complete, state returns to `Idle`
+   - **Try to reserve next cell** with `TryMoveUnitTo()`:
+     - If successful → Continue moving
+     - If occupied → State = `WaitingForNextCell`
+5. When `WaitingForNextCell`:
+   - Retry every 0.3s (up to 20 times = 6 seconds)
+   - If cell becomes free → Resume movement
+   - If timeout → State = `Blocked`
+
+**Debug Visualization** (BuggyMovementDebug.cs):
+- **White**: Idle
+- **Green**: Moving
+- **Orange**: WaitingForNextCell (collision detected, retrying)
+- **Red**: Blocked (gave up after timeout)
 
 **Direction Changes**: If `MoveTo()` called during movement, the system recalculates path from current target cell to new destination. The unit smoothly transitions to the new path without stopping.
 
 **Pathfinding**: Uses `GridPathfinder.CalculateStraightPath()` which supports 8-direction movement (N, NE, E, SE, S, SW, W, NW) using `Math.Sign()` for delta calculation.
+
+**Collision Prevention**: Uses atomic `TryMoveUnitTo()` to prevent race conditions where multiple units try to occupy the same cell simultaneously.
 
 ### 4. Camera System (`CommandAndConquer.Camera`)
 

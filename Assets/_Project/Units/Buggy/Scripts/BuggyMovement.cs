@@ -10,9 +10,10 @@ namespace CommandAndConquer.Units.Buggy
     /// </summary>
     public enum MovementState
     {
-        Idle,        // Pas de mouvement, unité immobile
-        Moving,      // En mouvement vers la destination
-        Blocked      // Mouvement impossible (chemin bloqué ou destination occupée)
+        Idle,                  // Pas de mouvement, unité immobile
+        Moving,                // En mouvement vers la destination
+        Blocked,               // Mouvement impossible (chemin bloqué ou destination occupée)
+        WaitingForNextCell     // Attend que la cellule suivante se libère
     }
 
     /// <summary>
@@ -39,6 +40,12 @@ namespace CommandAndConquer.Units.Buggy
         // Cellule cible actuelle
         private GridPosition targetCellPosition;
         private Vector3 targetWorldPosition;
+
+        // Retry system (pour WaitingForNextCell)
+        private float retryTimer = 0f;
+        private const float RETRY_INTERVAL = 0.3f;  // Vérifie toutes les 0.3s
+        private const int MAX_RETRIES = 20;         // 20 × 0.3s = 6 secondes max
+        private int retryCount = 0;
 
         #endregion
 
@@ -81,6 +88,10 @@ namespace CommandAndConquer.Units.Buggy
 
                 case MovementState.Moving:
                     HandleMoving();
+                    break;
+
+                case MovementState.WaitingForNextCell:
+                    HandleWaitingForNextCell();
                     break;
 
                 case MovementState.Blocked:
@@ -129,6 +140,22 @@ namespace CommandAndConquer.Units.Buggy
                 return;
             }
 
+            // Tenter de réserver la PREMIÈRE cellule atomiquement
+            GridPosition firstCell = movementPath[0];
+
+            if (!gridManager.TryMoveUnitTo(controller, firstCell))
+            {
+                // Première cellule occupée → attendre
+                destination = targetPosition;
+                currentPathIndex = 0;
+                state = MovementState.WaitingForNextCell;
+                retryTimer = 0f;
+                retryCount = 0;
+                Debug.Log($"[BuggyMovement] First cell {firstCell} occupied, waiting...");
+                return;
+            }
+
+            // Cellule réservée! Démarrer le mouvement physique
             destination = targetPosition;
             currentPathIndex = 0;
             state = MovementState.Moving;
@@ -166,20 +193,74 @@ namespace CommandAndConquer.Units.Buggy
         }
 
         /// <summary>
+        /// Gère l'attente quand la cellule suivante est occupée.
+        /// Réessaie périodiquement jusqu'à ce qu'elle se libère.
+        /// </summary>
+        private void HandleWaitingForNextCell()
+        {
+            retryTimer += Time.deltaTime;
+
+            if (retryTimer >= RETRY_INTERVAL)
+            {
+                retryTimer = 0f;
+                retryCount++;
+
+                GridPosition nextCell = movementPath[currentPathIndex];
+
+                // Tenter de réserver la cellule atomiquement
+                if (gridManager.TryMoveUnitTo(controller, nextCell))
+                {
+                    // Réussi! Reprendre le mouvement
+                    Debug.Log($"[BuggyMovement] Cell {nextCell} now free, resuming");
+                    retryCount = 0;
+                    state = MovementState.Moving;
+                    StartMovingToNextCell();
+                }
+                else if (retryCount >= MAX_RETRIES)
+                {
+                    // Timeout
+                    Debug.LogWarning($"[BuggyMovement] Gave up waiting for {nextCell}");
+                    state = MovementState.Blocked;
+                    retryCount = 0;
+                }
+            }
+        }
+
+        /// <summary>
         /// Appelé quand l'unité atteint une cellule du chemin.
         /// </summary>
         private void OnReachedCell()
         {
+            // Snap à la position exacte
             transform.position = targetWorldPosition;
+
+            // Update local tracking
             controller.UpdateGridPosition(targetCellPosition);
+
             currentPathIndex++;
 
             if (currentPathIndex < movementPath.Count)
             {
-                StartMovingToNextCell();
+                // Tenter de réserver la PROCHAINE cellule atomiquement
+                GridPosition nextCell = movementPath[currentPathIndex];
+
+                if (gridManager.TryMoveUnitTo(controller, nextCell))
+                {
+                    // Cellule réservée! Continuer le mouvement
+                    StartMovingToNextCell();
+                }
+                else
+                {
+                    // Cellule occupée → attendre
+                    state = MovementState.WaitingForNextCell;
+                    retryTimer = 0f;
+                    retryCount = 0;
+                    Debug.Log($"[BuggyMovement] Cell {nextCell} occupied, waiting...");
+                }
             }
             else
             {
+                // Arrivé à destination
                 state = MovementState.Idle;
                 movementPath = null;
                 Debug.Log($"[BuggyMovement] Reached destination: {destination}");

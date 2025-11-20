@@ -31,7 +31,7 @@ namespace CommandAndConquer.Units.Buggy
         }
 
         /// <summary>
-        /// Dessine un cercle autour du Buggy selon son état (blanc/vert/rouge).
+        /// Dessine un cercle autour du Buggy selon son état (blanc/vert/orange/rouge).
         /// </summary>
         private void DrawStateIndicator()
         {
@@ -39,6 +39,7 @@ namespace CommandAndConquer.Units.Buggy
             {
                 MovementState.Idle => Color.white,
                 MovementState.Moving => Color.green,
+                MovementState.WaitingForNextCell => new Color(1f, 0.5f, 0f),  // Orange
                 MovementState.Blocked => Color.red,
                 _ => Color.gray
             };

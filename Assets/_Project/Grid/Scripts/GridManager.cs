@@ -192,7 +192,7 @@ namespace CommandAndConquer.Grid
 
         /// <summary>
         /// Vérifie si une cellule est libre (peut être occupée par l'unité demandant).
-        /// C'est la SEULE méthode que les unités doivent appeler.
+        /// ATTENTION: Cette méthode ne réserve PAS la cellule. Utiliser TryMoveUnitTo() pour une opération atomique.
         /// </summary>
         public bool IsCellAvailableFor(GridPosition position, UnitBase requestingUnit)
         {
@@ -203,6 +203,66 @@ namespace CommandAndConquer.Grid
 
             // Libre ou occupée par l'unité elle-même
             return !cell.IsOccupied || cell.OccupyingUnit == requestingUnit;
+        }
+
+        /// <summary>
+        /// Tente de déplacer une unité vers une nouvelle position de manière atomique.
+        /// Libère l'ancienne cellule et occupe la nouvelle en une seule opération.
+        /// Évite les race conditions où plusieurs unités tentent d'occuper la même cellule.
+        /// </summary>
+        /// <returns>True si le mouvement a réussi, False si la cellule cible est occupée</returns>
+        public bool TryMoveUnitTo(UnitBase unit, GridPosition newPos)
+        {
+            if (!IsValidGridPosition(newPos))
+            {
+                Debug.LogWarning($"[GridManager] Cannot move {unit.name} to invalid position {newPos}");
+                return false;
+            }
+
+            // Récupérer l'ancienne position
+            if (!unitPositions.TryGetValue(unit, out GridPosition oldPos))
+            {
+                Debug.LogWarning($"[GridManager] Unit {unit.name} not registered");
+                return false;
+            }
+
+            // Si déjà à cette position, succès immédiat
+            if (oldPos == newPos)
+                return true;
+
+            // Tenter d'occuper la nouvelle cellule
+            GridCell newCell = GetCell(newPos);
+            if (newCell == null)
+                return false;
+
+            // Vérifier si la cellule est disponible (libre ou occupée par cette unité)
+            if (newCell.IsOccupied && newCell.OccupyingUnit != unit)
+            {
+                Debug.Log($"[GridManager] Cell {newPos} occupied by {newCell.OccupyingUnit?.name}, cannot move {unit.name}");
+                return false;
+            }
+
+            // Libérer l'ancienne cellule
+            GridCell oldCell = GetCell(oldPos);
+            if (oldCell != null && oldCell.OccupyingUnit == unit)
+            {
+                oldCell.Release();
+            }
+
+            // Occuper la nouvelle cellule (atomique!)
+            if (newCell.TryOccupy(unit))
+            {
+                unitPositions[unit] = newPos;
+                Debug.Log($"[GridManager] Moved {unit.name}: {oldPos} → {newPos}");
+                return true;
+            }
+            else
+            {
+                // Échec - remettre l'ancienne occupation
+                oldCell?.TryOccupy(unit);
+                Debug.LogWarning($"[GridManager] Failed to occupy {newPos} for {unit.name}");
+                return false;
+            }
         }
 
         /// <summary>
@@ -227,81 +287,103 @@ namespace CommandAndConquer.Grid
 
         #endregion
 
-        #region Autonomous Monitoring System
+        #region Grid Coherence Verification (Safety Net)
 
         /// <summary>
-        /// Surveille les positions des unités et met à jour automatiquement les occupations.
-        /// Utilise LateUpdate pour s'exécuter APRÈS les mouvements des unités.
+        /// Vérifie périodiquement la cohérence de la grille comme "filet de sécurité".
+        /// Détecte les incohérences sans interférer avec le fonctionnement normal.
         /// </summary>
         private void LateUpdate()
         {
-            // Copier la liste des clés pour éviter les modifications pendant l'itération
-            List<UnitBase> units = new List<UnitBase>(unitPositions.Keys);
+            // Nettoyage automatique des unités détruites
+            CleanupDestroyedUnits();
 
-            foreach (UnitBase unit in units)
+            // Vérification de cohérence (pas à chaque frame pour la performance)
+            if (Time.frameCount % 60 == 0) // Toutes les 60 frames (~1 seconde)
             {
-                // Vérifier que l'unité existe toujours
-                if (unit == null)
+                VerifyGridCoherence();
+            }
+        }
+
+        /// <summary>
+        /// Nettoie automatiquement les unités détruites du tracking.
+        /// </summary>
+        private void CleanupDestroyedUnits()
+        {
+            List<UnitBase> destroyedUnits = new List<UnitBase>();
+
+            foreach (var kvp in unitPositions)
+            {
+                if (kvp.Key == null)
                 {
-                    // Nettoyage automatique des unités détruites
-                    unitPositions.Remove(unit);
-                    continue;
+                    destroyedUnits.Add(kvp.Key);
                 }
+            }
 
-                // Récupérer la position actuelle de l'unité dans le monde
-                Vector3 worldPos = unit.transform.position;
-                GridPosition currentGridPos = GetGridPosition(worldPos);
-
-                // Récupérer la dernière position connue par le GridManager
-                GridPosition lastKnownPos = unitPositions[unit];
-
-                // Détecter si l'unité a changé de cellule
-                if (currentGridPos != lastKnownPos)
+            foreach (var unit in destroyedUnits)
+            {
+                if (unitPositions.TryGetValue(unit, out GridPosition pos))
                 {
-                    // Vérifier que la position est valide
-                    if (IsValidGridPosition(currentGridPos))
-                    {
-                        AutoUpdateUnitPosition(unit, lastKnownPos, currentGridPos);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[GridManager] {unit.name} moved to invalid position {currentGridPos}");
-                    }
+                    GridCell cell = GetCell(pos);
+                    cell?.Release();
+                    unitPositions.Remove(unit);
+                    Debug.LogWarning($"[GridManager] Auto-cleaned destroyed unit at {pos}");
                 }
             }
         }
 
         /// <summary>
-        /// Met à jour automatiquement la position d'une unité dans le système de grille.
-        /// Gère la libération de l'ancienne cellule et l'occupation de la nouvelle.
+        /// Vérifie la cohérence entre le tracking des unités et l'état de la grille.
+        /// Log des warnings si des incohérences sont détectées.
         /// </summary>
-        private void AutoUpdateUnitPosition(UnitBase unit, GridPosition oldPos, GridPosition newPos)
+        private void VerifyGridCoherence()
         {
-            // Libérer l'ancienne cellule
-            GridCell oldCell = GetCell(oldPos);
-            if (oldCell != null && oldCell.OccupyingUnit == unit)
+            // Vérification 1: Chaque unité enregistrée occupe-t-elle bien sa cellule?
+            foreach (var kvp in unitPositions)
             {
-                oldCell.Release();
+                UnitBase unit = kvp.Key;
+                GridPosition trackedPos = kvp.Value;
+
+                if (unit == null)
+                    continue;
+
+                GridCell cell = GetCell(trackedPos);
+                if (cell != null)
+                {
+                    if (!cell.IsOccupied)
+                    {
+                        Debug.LogError($"[GridManager] COHERENCE ERROR: Unit {unit.name} tracked at {trackedPos} but cell is not occupied!");
+                    }
+                    else if (cell.OccupyingUnit != unit)
+                    {
+                        Debug.LogError($"[GridManager] COHERENCE ERROR: Unit {unit.name} tracked at {trackedPos} but cell is occupied by {cell.OccupyingUnit?.name}!");
+                    }
+                }
             }
 
-            // Occuper la nouvelle cellule
-            GridCell newCell = GetCell(newPos);
-            if (newCell != null)
+            // Vérification 2: Chaque cellule occupée correspond-elle à une unité enregistrée?
+            for (int x = 0; x < width; x++)
             {
-                if (newCell.TryOccupy(unit))
+                for (int y = 0; y < height; y++)
                 {
-                    // Succès - mettre à jour le tracking
-                    unitPositions[unit] = newPos;
-                    Debug.Log($"[GridManager] Auto-updated {unit.name}: {oldPos} → {newPos}");
-                }
-                else
-                {
-                    // COLLISION! Une autre unité occupe déjà cette cellule
-                    Debug.LogWarning($"[GridManager] COLLISION: {unit.name} at {newPos} - cell occupied by {newCell.OccupyingUnit?.name}");
-
-                    // Mettre à jour le tracking quand même pour maintenir la synchronisation
-                    // Cela évite que le GridManager perde la trace de la position réelle de l'unité
-                    unitPositions[unit] = newPos;
+                    GridCell cell = cells[x, y];
+                    if (cell.IsOccupied)
+                    {
+                        UnitBase occupyingUnit = cell.OccupyingUnit;
+                        if (occupyingUnit == null)
+                        {
+                            Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) is occupied but unit is null!");
+                            cell.Release(); // Auto-correction
+                        }
+                        else if (!unitPositions.ContainsKey(occupyingUnit))
+                        {
+                            Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) occupied by {occupyingUnit.name} but unit is not registered!");
+                        }
+                        else if (unitPositions[occupyingUnit] != new GridPosition(x, y))
+                        {
+                            Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) occupied by {occupyingUnit.name} but unit is tracked at {unitPositions[occupyingUnit]}!");
+                        }
+                    }
                 }
             }
         }
