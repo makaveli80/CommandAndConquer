@@ -49,6 +49,12 @@ namespace CommandAndConquer.Units.Buggy
             // Initialiser la position sur la grille
             currentGridPosition = gridManager.GetGridPosition(transform.position);
 
+            // S'enregistrer auprès du GridManager (gère automatiquement l'occupation)
+            if (!gridManager.RegisterUnit(this, currentGridPosition))
+            {
+                Debug.LogError($"[BuggyController] Failed to register at {currentGridPosition}");
+            }
+
             // Configurer le nom de l'unité
             if (buggyData != null)
             {
@@ -56,6 +62,12 @@ namespace CommandAndConquer.Units.Buggy
             }
 
             Debug.Log($"[BuggyController] {unitName} initialized at {currentGridPosition}");
+        }
+
+        private void OnDestroy()
+        {
+            // Se désenregistrer du GridManager (libère automatiquement la cellule)
+            gridManager?.UnregisterUnit(this);
         }
 
         // IMovable implementation

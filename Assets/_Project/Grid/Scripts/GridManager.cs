@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using CommandAndConquer.Core;
 
@@ -7,6 +8,9 @@ namespace CommandAndConquer.Grid
     /// Gère la grille logique du jeu pour le positionnement et le déplacement des unités.
     /// Chaque cellule fait 1.0 unité Unity (sprites 128px avec PPU=128).
     /// Les positions sont toujours centrées (+0.5f) pour un placement visuel optimal.
+    ///
+    /// Utilise un système de surveillance autonome (LateUpdate) pour gérer automatiquement
+    /// les occupations de cellules sans intervention des unités.
     /// </summary>
     public class GridManager : MonoBehaviour
     {
@@ -20,6 +24,9 @@ namespace CommandAndConquer.Grid
         [SerializeField] private Color occupiedColor = new Color(1, 0, 0, 0.3f);
 
         private GridCell[,] cells;
+
+        // Tracking des unités (position grille connue par GridManager)
+        private Dictionary<UnitBase, GridPosition> unitPositions = new Dictionary<UnitBase, GridPosition>();
 
         public int Width => width;
         public int Height => height;
@@ -142,6 +149,164 @@ namespace CommandAndConquer.Grid
         {
             return Mathf.Abs(to.x - from.x) + Mathf.Abs(to.y - from.y);
         }
+
+        #region Unit Registration (Autonomous System)
+
+        /// <summary>
+        /// Enregistre une unité sur la grille à une position donnée.
+        /// Appelé une seule fois au spawn de l'unité.
+        /// </summary>
+        public bool RegisterUnit(UnitBase unit, GridPosition position)
+        {
+            if (!IsValidGridPosition(position))
+            {
+                Debug.LogError($"[GridManager] Cannot register unit at invalid position {position}");
+                return false;
+            }
+
+            GridCell cell = GetCell(position);
+            if (!cell.TryOccupy(unit))
+            {
+                Debug.LogWarning($"[GridManager] Cannot register unit at occupied cell {position}");
+                return false;
+            }
+
+            unitPositions[unit] = position;
+            Debug.Log($"[GridManager] Registered {unit.name} at {position}");
+            return true;
+        }
+
+        /// <summary>
+        /// Désenregistre une unité de la grille (destruction).
+        /// </summary>
+        public void UnregisterUnit(UnitBase unit)
+        {
+            if (unitPositions.TryGetValue(unit, out GridPosition position))
+            {
+                GridCell cell = GetCell(position);
+                cell?.Release();
+                unitPositions.Remove(unit);
+                Debug.Log($"[GridManager] Unregistered {unit.name} from {position}");
+            }
+        }
+
+        /// <summary>
+        /// Vérifie si une cellule est libre (peut être occupée par l'unité demandant).
+        /// C'est la SEULE méthode que les unités doivent appeler.
+        /// </summary>
+        public bool IsCellAvailableFor(GridPosition position, UnitBase requestingUnit)
+        {
+            if (!IsValidGridPosition(position))
+                return false;
+
+            GridCell cell = GetCell(position);
+
+            // Libre ou occupée par l'unité elle-même
+            return !cell.IsOccupied || cell.OccupyingUnit == requestingUnit;
+        }
+
+        /// <summary>
+        /// Récupère la position grille d'une unité selon le GridManager.
+        /// Utile pour le debug.
+        /// </summary>
+        public GridPosition GetUnitGridPosition(UnitBase unit)
+        {
+            if (unitPositions.TryGetValue(unit, out GridPosition position))
+                return position;
+
+            return new GridPosition(-1, -1); // Invalid
+        }
+
+        /// <summary>
+        /// Compte le nombre d'unités enregistrées.
+        /// </summary>
+        public int GetRegisteredUnitCount()
+        {
+            return unitPositions.Count;
+        }
+
+        #endregion
+
+        #region Autonomous Monitoring System
+
+        /// <summary>
+        /// Surveille les positions des unités et met à jour automatiquement les occupations.
+        /// Utilise LateUpdate pour s'exécuter APRÈS les mouvements des unités.
+        /// </summary>
+        private void LateUpdate()
+        {
+            // Copier la liste des clés pour éviter les modifications pendant l'itération
+            List<UnitBase> units = new List<UnitBase>(unitPositions.Keys);
+
+            foreach (UnitBase unit in units)
+            {
+                // Vérifier que l'unité existe toujours
+                if (unit == null)
+                {
+                    // Nettoyage automatique des unités détruites
+                    unitPositions.Remove(unit);
+                    continue;
+                }
+
+                // Récupérer la position actuelle de l'unité dans le monde
+                Vector3 worldPos = unit.transform.position;
+                GridPosition currentGridPos = GetGridPosition(worldPos);
+
+                // Récupérer la dernière position connue par le GridManager
+                GridPosition lastKnownPos = unitPositions[unit];
+
+                // Détecter si l'unité a changé de cellule
+                if (currentGridPos != lastKnownPos)
+                {
+                    // Vérifier que la position est valide
+                    if (IsValidGridPosition(currentGridPos))
+                    {
+                        AutoUpdateUnitPosition(unit, lastKnownPos, currentGridPos);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[GridManager] {unit.name} moved to invalid position {currentGridPos}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Met à jour automatiquement la position d'une unité dans le système de grille.
+        /// Gère la libération de l'ancienne cellule et l'occupation de la nouvelle.
+        /// </summary>
+        private void AutoUpdateUnitPosition(UnitBase unit, GridPosition oldPos, GridPosition newPos)
+        {
+            // Libérer l'ancienne cellule
+            GridCell oldCell = GetCell(oldPos);
+            if (oldCell != null && oldCell.OccupyingUnit == unit)
+            {
+                oldCell.Release();
+            }
+
+            // Occuper la nouvelle cellule
+            GridCell newCell = GetCell(newPos);
+            if (newCell != null)
+            {
+                if (newCell.TryOccupy(unit))
+                {
+                    // Succès - mettre à jour le tracking
+                    unitPositions[unit] = newPos;
+                    Debug.Log($"[GridManager] Auto-updated {unit.name}: {oldPos} → {newPos}");
+                }
+                else
+                {
+                    // COLLISION! Une autre unité occupe déjà cette cellule
+                    Debug.LogWarning($"[GridManager] COLLISION: {unit.name} at {newPos} - cell occupied by {newCell.OccupyingUnit?.name}");
+
+                    // Mettre à jour le tracking quand même pour maintenir la synchronisation
+                    // Cela évite que le GridManager perde la trace de la position réelle de l'unité
+                    unitPositions[unit] = newPos;
+                }
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Affiche la grille en mode Debug (Gizmos)
