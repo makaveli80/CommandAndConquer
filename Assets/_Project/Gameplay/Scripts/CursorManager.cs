@@ -24,8 +24,8 @@ namespace CommandAndConquer.Gameplay
         private Texture2D[] hoverUnitFrames;
 
         [SerializeField]
-        [Tooltip("Curseur pour indiquer une destination de mouvement")]
-        private Texture2D moveCursor;
+        [Tooltip("Frames d'animation pour le curseur de destination de mouvement")]
+        private Texture2D[] moveCursorFrames;
 
         [Header("Animation Settings")]
         [SerializeField]
@@ -35,7 +35,7 @@ namespace CommandAndConquer.Gameplay
         [Header("Cursor Hotspot")]
         [SerializeField]
         [Tooltip("Point actif du curseur (en pixels depuis le coin supérieur gauche)")]
-        private Vector2 cursorHotspot = new Vector2(16, 16);
+        private Vector2 cursorHotspot = new Vector2(24, 24);
 
         #endregion
 
@@ -102,7 +102,7 @@ namespace CommandAndConquer.Gameplay
                     break;
 
                 case CursorType.Move:
-                    SetStaticCursor(moveCursor);
+                    SetAnimatedCursor(moveCursorFrames);
                     break;
             }
         }
@@ -207,6 +207,9 @@ namespace CommandAndConquer.Gameplay
             {
                 case CursorType.Hover:
                     return hoverUnitFrames;
+
+                case CursorType.Move:
+                    return moveCursorFrames;
 
                 default:
                     return null;

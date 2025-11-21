@@ -23,7 +23,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Artillery unit with grid-based movement (speed: 1.5)
 - ✅ Mouse-based selection system (click to select/move units)
 - ✅ **Corner bracket selection visual** (white L-shaped brackets in 4 corners)
-- ✅ **Animated cursor system** (hover feedback with 6-frame animation)
+- ✅ **Animated cursor system** (hover + destination feedback)
+  - Hover cursor: 6-frame animation when hovering units
+  - Move cursor: 4-frame animation for valid movement destinations
+  - Priority system: Hover > Move > Default
 - ✅ State machine for unit movement (Idle, Moving, WaitingForNextCell, Blocked)
 - ✅ GridPathfinder utility for path calculation (8 directions)
 - ✅ Modular debug visualization system
@@ -311,12 +314,12 @@ public void HideBrackets()  // Deactivates 4 corner sprites
 
 ### 6. Cursor System (`CommandAndConquer.Gameplay`)
 
-**Purpose**: Dynamic cursor feedback system with animated cursor support for unit hover
+**Purpose**: Dynamic cursor feedback system with animated cursors for unit hover and movement destination
 
 **Key Files**:
 - `Gameplay/Scripts/CursorManager.cs` - Singleton cursor manager with animation support
 - `Gameplay/Scripts/CursorType.cs` - Enum for cursor types
-- `Gameplay/Scripts/SelectionManager.cs` - Handles unit hover detection
+- `Gameplay/Scripts/SelectionManager.cs` - Handles unit hover and destination detection
 - `Gameplay/Editor/CursorSpriteImporter.cs` - Auto-configures cursor sprites
 
 **Architecture**:
@@ -324,7 +327,7 @@ public void HideBrackets()  // Deactivates 4 corner sprites
 The cursor system uses a **singleton pattern** where `CursorManager` manages cursor state and `SelectionManager` triggers cursor changes based on hover detection:
 
 ```
-SelectionManager (hover detection)
+SelectionManager (hover + destination detection)
     ↓ calls SetCursor() / ResetCursor()
 CursorManager (singleton)
     ↓ uses Unity Cursor API
@@ -337,31 +340,30 @@ Cursor.SetCursor(Texture2D, hotspot, mode)
 - Exposes `SetCursor(CursorType)` and `ResetCursor()` public API
 - Updates animation frames in Update() when active
 
-**SelectionManager** (Modified):
-- Added `HandleUnitHover()` method called every frame
-- Performs raycast to detect units under mouse cursor
-- Calls `CursorManager.SetCursor(CursorType.Hover)` when hovering over unit
-- Calls `CursorManager.ResetCursor()` when leaving unit
+**SelectionManager** (Detection System):
+- **`HandleUnitHover()`** - Returns bool, detects units under cursor
+- **`HandleDestinationHover()`** - Detects valid movement destinations (only when unit selected)
+- **Priority system**: Hover cursor > Move cursor > Default cursor
+- Performs raycast + grid validation every frame
+- Only shows Move cursor on valid, available cells
 
 **Cursor Types**:
 ```csharp
 public enum CursorType {
-    Default,              // System default cursor
-    HoverFriendlyUnit,    // Animated cursor when hovering friendly units (6 frames)
-    Move,                 // Movement destination cursor
-    Attack                // Enemy target cursor
+    Default,  // System default cursor
+    Hover,    // Animated cursor when hovering friendly units (6 frames)
+    Move      // Animated cursor for movement destination (4 frames)
 }
 ```
 
 **Cursor Configuration**:
 ```csharp
 [Header("Cursor Textures")]
-[SerializeField] private Texture2D[] hoverFriendlyUnitFrames;  // 6 frames for animation
-[SerializeField] private Texture2D moveCursor;
-[SerializeField] private Texture2D attackCursor;
+[SerializeField] private Texture2D[] hoverUnitFrames;      // 6 frames for hover animation
+[SerializeField] private Texture2D[] moveCursorFrames;     // 4 frames for move animation
 
 [Header("Animation Settings")]
-[SerializeField] private float animationFPS = 10f;              // Animation speed
+[SerializeField] private float animationFPS = 10f;         // Animation speed
 
 [Header("Cursor Hotspot")]
 [SerializeField] private Vector2 cursorHotspot = new Vector2(24, 24);  // Click point (center for 48x48)
@@ -389,19 +391,35 @@ public enum CursorType {
 public void SetCursor(CursorType type)  // Changes cursor to specified type
 public void ResetCursor()                // Resets to system default
 
-// SelectionManager (hover detection)
-private void HandleUnitHover()          // Detects units under cursor, updates CursorManager
+// SelectionManager (hover + destination detection)
+private bool HandleUnitHover()           // Detects units under cursor, returns true if hovering
+private void HandleDestinationHover()    // Detects valid move destinations (only when unit selected)
 ```
 
+**Cursor Priority System** (Update() flow):
+1. **HandleUnitHover()** runs first → Returns `true` if unit is hovered
+2. **HandleDestinationHover()** runs only if no unit is hovered
+3. Result: **Hover cursor** always takes precedence over **Move cursor**
+
+**Destination Validation**:
+- Move cursor only appears when:
+  - A unit is selected (`currentSelection != null`)
+  - Unit is movable (`IMovable` interface)
+  - Mouse is over valid grid cell (`IsValidGridPosition`)
+  - Cell is available (`IsCellAvailableFor`)
+- Invalid destinations show default cursor (no visual feedback)
+
 **Animation System**:
-- Cursors with multiple frames (e.g., `hoverFriendlyUnitFrames[]`) are automatically animated
+- **Hover cursor**: 6 frames animated @ 10 FPS (ICON_SELECT_FRIENDLY_00-05)
+- **Move cursor**: 4 frames animated @ 10 FPS (ICON_MOVEMENT_COMMAND_00-03)
 - Animation updates in `CursorManager.Update()` based on `animationFPS`
 - Frame index cycles through array using modulo: `currentFrame = (currentFrame + 1) % frames.Length`
-- Single-texture cursors (Move, Attack) are static (no animation)
+- All cursors are now animated (no static cursors)
 
 **Design Principles**:
 - **Singleton Access**: `CursorManager.Instance` available globally
 - **Separation of Concerns**: SelectionManager = detection, CursorManager = display
+- **Priority-based**: Clear hierarchy prevents cursor conflicts
 - **Performance**: Textures loaded once in Inspector, only SetCursor() calls in runtime
 - **Extensibility**: Easy to add new cursor types by extending `CursorType` enum
 

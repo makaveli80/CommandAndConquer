@@ -9341,7 +9341,11 @@ MonoBehaviour:
   - {fileID: 2800000, guid: ba5e9d7111f102541bedc31e56fa0248, type: 3}
   - {fileID: 2800000, guid: 1ab87e8961a270f4e9c971dda469100b, type: 3}
   - {fileID: 2800000, guid: ba5612aac4d5b7f43ab8b9df3da0b503, type: 3}
-  moveCursor: {fileID: 0}
+  moveCursorFrames:
+  - {fileID: 2800000, guid: 40ca9b8ea7ab9a84d9c44a34893a968f, type: 3}
+  - {fileID: 2800000, guid: bed24b6ac52300e4abe51f44a037ca5a, type: 3}
+  - {fileID: 2800000, guid: ec89d3b70d9ffe2409f5e2a633b3dd93, type: 3}
+  - {fileID: 2800000, guid: 62b3d36a352205a49b8472b01492eb3e, type: 3}
   animationFPS: 10
   cursorHotspot: {x: 24, y: 24}
 --- !u!4 &1273998835
