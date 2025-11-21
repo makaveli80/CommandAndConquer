@@ -3,14 +3,14 @@
 Documentation de l'implémentation du Buggy - Première unité jouable du projet Command & Conquer.
 
 **Date de création :** 2025-01-17
-**Statut :** Étapes 1-6 complétées (mouvement fonctionnel)
-**Prochaine étape :** Tests finaux et validation
+**Statut :** Étapes 1-7 complétées (validation terminée) ✅
+**Prochaine étape :** Étape 8 (animations) OU Commit 9 (système de sélection)
 
 ---
 
 ## 📊 État actuel
 
-### ✅ Étapes complétées (1-6)
+### ✅ Étapes complétées (1-7)
 
 #### **Étape 1 : BuggyData ScriptableObject** ✅
 - **Fichier :** `Assets/_Project/Units/Buggy/Data/BuggyData.cs`
@@ -147,31 +147,36 @@ Documentation de l'implémentation du Buggy - Première unité jouable du projet
 
 ---
 
-## ⏭️ Prochaines étapes
-
-### **Étape 7 : Validation finale occupation/libération** 🔄
+#### **Étape 7 : Validation finale occupation/libération** ✅
 **Objectif :** Tests approfondis du système de gestion des cellules
 
-**Tests à faire :**
+**Tests effectués (manuels) :**
 1. **Plusieurs Buggies :**
-   - Créer 2-3 instances du prefab Buggy dans la scène
-   - Vérifier qu'ils ne peuvent pas occuper la même cellule
-   - Tester les collisions de chemin
+   - ✅ 2-3 instances du prefab Buggy placées dans la scène
+   - ✅ Aucune unité ne peut occuper la même cellule
+   - ✅ Collisions de chemin gérées avec retry mechanism
 
 2. **Scénarios edge case :**
-   - Chemin bloqué par obstacle → Vérifier message d'erreur
-   - Position invalide → Vérifier validation
-   - Cellule déjà occupée → Vérifier refus de mouvement
+   - ✅ Chemin bloqué par obstacle → Messages d'erreur corrects
+   - ✅ Position invalide → Validation fonctionne
+   - ✅ Cellule déjà occupée → Mouvement refusé ou retry activé
 
 3. **Performance :**
-   - Observer la fluidité avec plusieurs unités
-   - Vérifier pas de memory leak (cellules toujours libérées)
+   - ✅ Mouvement fluide avec plusieurs unités simultanées
+   - ✅ Aucune cellule fantôme (pas de memory leak)
+   - ✅ Système de coherence vérifie l'intégrité toutes les 60 frames
 
 **Critères de validation :**
 - ✅ Aucune cellule fantôme occupée
 - ✅ Messages d'erreur clairs et pertinents
 - ✅ Plusieurs unités peuvent coexister sans conflit
 - ✅ Pas de crash ou comportement inattendu
+
+**Résultat :** VALIDÉ - Le système de collision atomique fonctionne correctement
+
+---
+
+## ⏭️ Prochaines étapes
 
 ### **Étape 8 : Animations 8 directions (Optionnel)** 📝
 **Objectif :** Ajouter les animations pour les 8 directions de mouvement
@@ -333,6 +338,6 @@ Après validation du Buggy (étapes 7-8), reprendre le plan de la ROADMAP :
 
 ---
 
-**Dernière mise à jour :** 2025-01-17
-**Étapes validées :** 1-6 / 8
-**Prochaine action :** Validation finale étape 7
+**Dernière mise à jour :** 2025-01-21
+**Étapes validées :** 1-7 / 8
+**Prochaine action :** Étape 8 (animations optionnel) OU Commit 9 de ROADMAP (système de sélection)

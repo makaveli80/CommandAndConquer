@@ -14,20 +14,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Current State
 
 **Branch**: `feature/setup-buggy-unit`
-**Phase**: Phase 2 - Buggy unit implementation (refactoring complete)
+**Phase**: Phase 2 - Buggy unit implementation ✅ COMPLETE
 
 ### Completed Features
 - ✅ Grid system (20x20, 1.0 unit cells)
 - ✅ Camera controller (WASD, edge scroll, zoom)
 - ✅ Buggy unit with grid-based movement
-- ✅ State machine for unit movement
-- ✅ GridPathfinder utility for path calculation
+- ✅ State machine for unit movement (Idle, Moving, WaitingForNextCell, Blocked)
+- ✅ GridPathfinder utility for path calculation (8 directions)
 - ✅ Modular debug visualization system
 - ✅ Collision detection and avoidance system with retry mechanism
 - ✅ Atomic cell reservation system (prevents race conditions)
+- ✅ Multi-unit collision handling validated (Step 7)
 
 ### Next Steps
-See BUGGY_IMPLEMENTATION.md Step 7 and ROADMAP.md for detailed plan.
+**Option A:** Commit 9 (ROADMAP) - Implement selection system (mouse click to select/move units)
+**Option B:** Step 8 (BUGGY_IMPLEMENTATION) - Add 8-direction animations (optional)
+
+See BUGGY_IMPLEMENTATION.md and ROADMAP.md for detailed plan.
 
 ## Architecture Overview
 
@@ -445,6 +449,6 @@ git log --oneline -5
 
 ---
 
-**Last Updated**: 2025-11-19
-**Current Focus**: Buggy unit complete with refactored architecture
-**Next Milestone**: Selection and input system (see ROADMAP.md)
+**Last Updated**: 2025-01-21
+**Current Focus**: Buggy unit fully validated (7/8 steps complete)
+**Next Milestone**: Selection system (Commit 9) or animations (Step 8 - optional)
