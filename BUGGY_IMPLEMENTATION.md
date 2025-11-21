@@ -3,8 +3,8 @@
 Documentation de l'implémentation du Buggy - Première unité jouable du projet Command & Conquer.
 
 **Date de création :** 2025-01-17
-**Statut :** Étapes 1-7 complétées (validation terminée) ✅
-**Prochaine étape :** Étape 8 (animations) OU Commit 9 (système de sélection)
+**Statut :** Étapes 1-7 complétées (validation terminée) ✅ + Commit 9 (sélection souris) ✅
+**Prochaine étape :** Étape 8 (animations optionnel) OU Commit 10 (deuxième unité)
 
 ---
 
@@ -176,6 +176,77 @@ Documentation de l'implémentation du Buggy - Première unité jouable du projet
 
 ---
 
+#### **Commit 9 : Système de sélection à la souris** ✅
+**Objectif :** Permettre la sélection et le contrôle des unités via la souris (correspond au Commit 9 de la ROADMAP)
+
+**Fichiers créés :**
+- **`Assets/_Project/Gameplay/Scripts/SelectionManager.cs`**
+- **`Assets/_Project/Gameplay/CommandAndConquer.Gameplay.asmdef`**
+
+**Modifications :**
+- **`BuggyController.cs`** : Ajout de feedback visuel de sélection (changement de couleur)
+
+**Fonctionnalités implémentées :**
+
+1. **SelectionManager (nouveau module Gameplay) :**
+   - Gère la sélection d'une seule unité à la fois
+   - **Clic gauche** : Sélection d'unité via raycast 2D
+   - **Clic droit** : Commande de mouvement vers la cellule cliquée
+   - Utilise `Physics2D.GetRayIntersection()` pour détecter les unités
+   - Convertit position souris → monde → grille automatiquement
+   - Valide la position cible avant d'envoyer la commande
+
+2. **Feedback visuel :**
+   - Unité sélectionnée : sprite teinte verte (Color: 0.5f, 1f, 0.5f)
+   - Unité désélectionnée : couleur d'origine restaurée
+   - Implémenté via `OnSelected()` et `OnDeselected()` dans BuggyController
+
+3. **Architecture modulaire :**
+   - **Nouveau module `Gameplay`** créé pour éviter les dépendances circulaires
+   - Architecture finale : `Core (base)` → `Grid (système)` → `Gameplay (orchestration)`
+   - `Gameplay.asmdef` référence `Core`, `Grid`, et `Unity.InputSystem`
+
+**Méthodes principales (SelectionManager) :**
+```csharp
+private void HandleLeftClick()        // Sélection d'unité
+private void HandleRightClick()       // Commande de mouvement
+private void SelectUnit(ISelectable)  // Change la sélection
+private void DeselectCurrentUnit()    // Désélectionne
+public ISelectable CurrentSelection   // Property publique
+```
+
+**Configuration requise :**
+- SelectionManager ajouté comme GameObject dans la scène `Game.unity`
+- Référence au GridManager assignée (ou auto-trouvé via `FindFirstObjectByType`)
+- LayerMask configuré pour détecter les unités (par défaut : tous les layers)
+- Buggy prefab avec `BoxCollider2D` (déjà présent depuis étape 3)
+
+**Tests effectués :**
+- ✅ Clic gauche sur Buggy → Sprite devient vert (sélection)
+- ✅ Clic gauche sur le vide → Sprite redevient normal (désélection)
+- ✅ Clic droit avec Buggy sélectionné → Buggy se déplace vers la cellule
+- ✅ Conversion souris → monde → grille fonctionnelle
+- ✅ Validation de position (rejette les positions invalides)
+
+**Problèmes résolus durant l'implémentation :**
+
+**Bug 1 : Dépendance circulaire Core ↔ Grid**
+- **Symptôme :** `Cyclic dependency detected: Core.asmdef, Grid.asmdef`
+- **Cause :** Tentative d'ajouter SelectionManager dans Core, mais Core ne peut pas dépendre de Grid (qui dépend déjà de Core)
+- **Solution :** Création du module `Gameplay` comme couche orchestration au-dessus de Grid
+
+**Bug 2 : Nom de méthode incorrect**
+- **Symptôme :** `CS1061: 'GridManager' does not contain 'IsValidPosition'`
+- **Cause :** Appel d'une méthode inexistante
+- **Solution :** Lecture du code source → méthode correcte : `IsValidGridPosition()`
+
+**Évolution future prévue :**
+- Multi-sélection avec box selection (`Physics2D.OverlapArea()`)
+- Les deux systèmes (raycast + box) cohabiteront pour différents modes de sélection
+- Le raycast restera pertinent pour la sélection de précision (clic individuel)
+
+---
+
 ## ⏭️ Prochaines étapes
 
 ### **Étape 8 : Animations 8 directions (Optionnel)** 📝
@@ -259,21 +330,27 @@ public class BuggyAnimator : MonoBehaviour
 ## 📁 Structure des fichiers créés
 
 ```
-Assets/_Project/Units/Buggy/
-├── Data/
-│   ├── BuggyData.cs                    ✅ ScriptableObject
-│   ├── BuggyData.asset                 ✅ Configuration (moveSpeed=4.0)
-│   └── Editor/
-│       └── CreateBuggyData.cs          ✅ Utilitaire création asset
-├── Scripts/
-│   ├── BuggyController.cs              ✅ Contrôleur principal
-│   ├── BuggyMovement.cs                ✅ Système déplacement case par case
-│   └── BuggyTestMovement.cs            ✅ Script test pavé numérique
-├── Prefabs/
-│   └── Buggy.prefab                    ✅ Prefab complet
-└── Sprites/
-    ├── buggy-0000.png à buggy-0030.png ✅ 16 sprites animation
-    └── (configurés automatiquement)
+Assets/_Project/
+├── Units/Buggy/
+│   ├── Data/
+│   │   ├── BuggyData.cs                    ✅ ScriptableObject
+│   │   ├── BuggyData.asset                 ✅ Configuration (moveSpeed=4.0)
+│   │   └── Editor/
+│   │       └── CreateBuggyData.cs          ✅ Utilitaire création asset
+│   ├── Scripts/
+│   │   ├── BuggyController.cs              ✅ Contrôleur principal (+ feedback sélection)
+│   │   ├── BuggyMovement.cs                ✅ Système déplacement case par case
+│   │   └── BuggyTestMovement.cs            ✅ Script test pavé numérique
+│   ├── Prefabs/
+│   │   └── Buggy.prefab                    ✅ Prefab complet
+│   └── Sprites/
+│       ├── buggy-0000.png à buggy-0030.png ✅ 16 sprites animation
+│       └── (configurés automatiquement)
+│
+└── Gameplay/
+    ├── Scripts/
+    │   └── SelectionManager.cs              ✅ Gestion sélection souris
+    └── CommandAndConquer.Gameplay.asmdef    ✅ Module orchestration
 ```
 
 ---
@@ -339,5 +416,5 @@ Après validation du Buggy (étapes 7-8), reprendre le plan de la ROADMAP :
 ---
 
 **Dernière mise à jour :** 2025-01-21
-**Étapes validées :** 1-7 / 8
-**Prochaine action :** Étape 8 (animations optionnel) OU Commit 9 de ROADMAP (système de sélection)
+**Étapes validées :** 1-7 + Commit 9 ✅
+**Prochaine action :** Étape 8 (animations optionnel) OU Commit 10 (deuxième unité)
