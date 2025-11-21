@@ -1,23 +1,23 @@
 using CommandAndConquer.Units._Project.Units.Common.Vehicle;
 using UnityEngine;
 
-namespace CommandAndConquer.Units.Buggy
+namespace CommandAndConquer.Units.Artillery
 {
     /// <summary>
-    /// Gère le déplacement du Buggy sur la grille case par case.
+    /// Gère le déplacement de l'Artillery sur la grille case par case.
     /// Hérite de VehicleMovement pour éviter la duplication de code.
     /// </summary>
-    public class BuggyMovement : VehicleMovement
+    public class ArtilleryMovement : VehicleMovement
     {
         // Référence au contrôleur (donne accès au contexte partagé)
-        private BuggyController controller;
+        private ArtilleryController controller;
 
         protected override VehicleContext Context => controller?.Context;
-        protected override string UnitTypeName => "Buggy";
+        protected override string UnitTypeName => "Artillery";
 
         private void Awake()
         {
-            controller = GetComponent<BuggyController>();
+            controller = GetComponent<ArtilleryController>();
         }
     }
 }
