@@ -24,10 +24,8 @@ namespace CommandAndConquer.Units.Buggy
     {
         #region Fields
 
-        // Références
+        // Référence au contrôleur (donne accès au contexte partagé)
         private BuggyController controller;
-        private GridManager gridManager;
-        private BuggyData data;
 
         // Machine à états
         private MovementState state = MovementState.Idle;
@@ -43,8 +41,8 @@ namespace CommandAndConquer.Units.Buggy
 
         // Retry system (pour WaitingForNextCell)
         private float retryTimer = 0f;
-        private const float RETRY_INTERVAL = 0.3f;  // Vérifie toutes les 0.3s
-        private const int MAX_RETRIES = 20;         // 20 × 0.3s = 6 secondes max
+        private const float RETRY_INTERVAL = 0.1f;  // Vérifie toutes les 0.1s
+        private const int MAX_RETRIES = 30;         // 30 × 0.1s = 3 secondes max
         private int retryCount = 0;
 
         #endregion
@@ -68,15 +66,6 @@ namespace CommandAndConquer.Units.Buggy
         private void Awake()
         {
             controller = GetComponent<BuggyController>();
-            gridManager = FindFirstObjectByType<GridManager>();
-        }
-
-        private void Start()
-        {
-            if (controller != null && controller.Data != null)
-            {
-                data = controller.Data;
-            }
         }
 
         private void Update()
@@ -105,6 +94,7 @@ namespace CommandAndConquer.Units.Buggy
 
         /// <summary>
         /// Déplace l'unité vers une position cible sur la grille.
+        /// Calcule le chemin et configure l'état, la réservation est gérée par HandleWaitingForNextCell().
         /// Si un mouvement est en cours, l'ancien mouvement est annulé et un nouveau est calculé.
         /// </summary>
         public void MoveTo(GridPosition targetPosition)
@@ -133,35 +123,22 @@ namespace CommandAndConquer.Units.Buggy
                 return;
             }
 
-            // Démarrer un nouveau mouvement
+            // Calculer le chemin pour un nouveau mouvement
             if (!TryCalculatePath(controller.CurrentGridPosition, targetPosition, out movementPath))
             {
                 state = MovementState.Blocked;
+                Debug.LogWarning($"[BuggyMovement] No valid path to {targetPosition}");
                 return;
             }
 
-            // Tenter de réserver la PREMIÈRE cellule atomiquement
-            GridPosition firstCell = movementPath[0];
-
-            if (!gridManager.TryMoveUnitTo(controller, firstCell))
-            {
-                // Première cellule occupée → attendre
-                destination = targetPosition;
-                currentPathIndex = 0;
-                state = MovementState.WaitingForNextCell;
-                retryTimer = 0f;
-                retryCount = 0;
-                Debug.Log($"[BuggyMovement] First cell {firstCell} occupied, waiting...");
-                return;
-            }
-
-            // Cellule réservée! Démarrer le mouvement physique
+            // Configurer l'état - la réservation sera gérée par HandleWaitingForNextCell()
             destination = targetPosition;
             currentPathIndex = 0;
-            state = MovementState.Moving;
-            StartMovingToNextCell();
+            state = MovementState.WaitingForNextCell;
+            retryTimer = 0f;
+            retryCount = 0;
 
-            Debug.Log($"[BuggyMovement] Moving from {controller.CurrentGridPosition} to {targetPosition} ({movementPath.Count} steps)");
+            Debug.Log($"[BuggyMovement] Path calculated to {targetPosition} ({movementPath.Count} steps), waiting for first cell");
         }
 
         #endregion
@@ -181,7 +158,7 @@ namespace CommandAndConquer.Units.Buggy
             }
             else
             {
-                float moveSpeed = data != null ? data.moveSpeed : 3f;
+                float moveSpeed = controller.Context.Data != null ? controller.Context.Data.moveSpeed : 3f;
                 float step = moveSpeed * Time.deltaTime;
 
                 transform.position = Vector3.MoveTowards(
@@ -193,8 +170,9 @@ namespace CommandAndConquer.Units.Buggy
         }
 
         /// <summary>
-        /// Gère l'attente quand la cellule suivante est occupée.
-        /// Réessaie périodiquement jusqu'à ce qu'elle se libère.
+        /// Gère l'attente et la réservation des cellules (première cellule ou cellules suivantes).
+        /// C'est le point d'entrée pour toute réservation atomique de cellules.
+        /// Réessaie périodiquement jusqu'à ce que la cellule se libère ou timeout.
         /// </summary>
         private void HandleWaitingForNextCell()
         {
@@ -208,18 +186,18 @@ namespace CommandAndConquer.Units.Buggy
                 GridPosition nextCell = movementPath[currentPathIndex];
 
                 // Tenter de réserver la cellule atomiquement
-                if (gridManager.TryMoveUnitTo(controller, nextCell))
+                if (controller.Context.GridManager.TryMoveUnitTo(controller, nextCell))
                 {
-                    // Réussi! Reprendre le mouvement
-                    Debug.Log($"[BuggyMovement] Cell {nextCell} now free, resuming");
+                    // Réussi! Démarrer ou reprendre le mouvement
+                    Debug.Log($"[BuggyMovement] Cell {nextCell} reserved, starting movement");
                     retryCount = 0;
                     state = MovementState.Moving;
                     StartMovingToNextCell();
                 }
                 else if (retryCount >= MAX_RETRIES)
                 {
-                    // Timeout
-                    Debug.LogWarning($"[BuggyMovement] Gave up waiting for {nextCell}");
+                    // Timeout après MAX_RETRIES tentatives
+                    Debug.LogWarning($"[BuggyMovement] Gave up waiting for {nextCell} after {MAX_RETRIES} retries");
                     state = MovementState.Blocked;
                     retryCount = 0;
                 }
@@ -244,7 +222,7 @@ namespace CommandAndConquer.Units.Buggy
                 // Tenter de réserver la PROCHAINE cellule atomiquement
                 GridPosition nextCell = movementPath[currentPathIndex];
 
-                if (gridManager.TryMoveUnitTo(controller, nextCell))
+                if (controller.Context.GridManager.TryMoveUnitTo(controller, nextCell))
                 {
                     // Cellule réservée! Continuer le mouvement
                     StartMovingToNextCell();
@@ -280,7 +258,7 @@ namespace CommandAndConquer.Units.Buggy
             }
 
             targetCellPosition = movementPath[currentPathIndex];
-            targetWorldPosition = gridManager.GetWorldPosition(targetCellPosition);
+            targetWorldPosition = controller.Context.GridManager.GetWorldPosition(targetCellPosition);
         }
 
         #endregion
@@ -292,9 +270,9 @@ namespace CommandAndConquer.Units.Buggy
         /// </summary>
         private bool IsValidMoveRequest(GridPosition targetPosition)
         {
-            if (gridManager == null)
+            if (controller?.Context?.GridManager == null)
             {
-                Debug.LogError("[BuggyMovement] GridManager not found!");
+                Debug.LogError("[BuggyMovement] GridManager not found in context!");
                 return false;
             }
 
@@ -304,7 +282,7 @@ namespace CommandAndConquer.Units.Buggy
                 return false;
             }
 
-            if (!gridManager.IsValidGridPosition(targetPosition))
+            if (!controller.Context.GridManager.IsValidGridPosition(targetPosition))
             {
                 Debug.LogWarning($"[BuggyMovement] Invalid target position: {targetPosition}");
                 return false;
@@ -322,7 +300,7 @@ namespace CommandAndConquer.Units.Buggy
         /// <returns>True si le chemin est valide, False sinon</returns>
         private bool TryCalculatePath(GridPosition from, GridPosition to, out List<GridPosition> path)
         {
-            path = GridPathfinder.CalculateStraightPath(gridManager, from, to);
+            path = GridPathfinder.CalculateStraightPath(controller.Context.GridManager, from, to);
 
             if (path == null || path.Count == 0)
             {

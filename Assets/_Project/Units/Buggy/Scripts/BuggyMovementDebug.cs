@@ -12,17 +12,17 @@ namespace CommandAndConquer.Units.Buggy
     public class BuggyMovementDebug : MonoBehaviour
     {
         private BuggyMovement movement;
-        private GridManager gridManager;
+        private BuggyController controller;
 
         private void Awake()
         {
             movement = GetComponent<BuggyMovement>();
-            gridManager = FindFirstObjectByType<GridManager>();
+            controller = GetComponent<BuggyController>();
         }
 
         private void OnDrawGizmos()
         {
-            if (movement == null || gridManager == null)
+            if (movement == null || controller?.Context?.GridManager == null)
                 return;
 
             DrawStateIndicator();
@@ -71,7 +71,7 @@ namespace CommandAndConquer.Units.Buggy
 
             for (int i = 0; i < path.Count; i++)
             {
-                Vector3 cellWorldPos = gridManager.GetWorldPosition(path[i]);
+                Vector3 cellWorldPos = controller.Context.GridManager.GetWorldPosition(path[i]);
 
                 // Couleur selon progression
                 if (i < currentIndex)
@@ -97,7 +97,7 @@ namespace CommandAndConquer.Units.Buggy
 
             for (int i = currentIndex; i < path.Count; i++)
             {
-                Vector3 cellWorldPos = gridManager.GetWorldPosition(path[i]);
+                Vector3 cellWorldPos = controller.Context.GridManager.GetWorldPosition(path[i]);
                 Gizmos.DrawLine(previousPos, cellWorldPos);
                 previousPos = cellWorldPos;
             }
@@ -108,7 +108,7 @@ namespace CommandAndConquer.Units.Buggy
         /// </summary>
         private void DrawDestination()
         {
-            Vector3 finalDestPos = gridManager.GetWorldPosition(movement.CurrentDestination);
+            Vector3 finalDestPos = controller.Context.GridManager.GetWorldPosition(movement.CurrentDestination);
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(finalDestPos, 0.5f);
         }

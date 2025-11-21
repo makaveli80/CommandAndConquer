@@ -16,10 +16,9 @@ namespace CommandAndConquer.Units.Buggy
 
         // Composants (seront ajoutés plus tard)
         private BuggyMovement movement;
-        private GridManager gridManager;
 
-        // État
-        private GridPosition currentGridPosition;
+        // Contexte partagé
+        private BuggyContext context;
 
         // IMovable properties
         public bool IsMoving => movement != null && movement.IsMoving;
@@ -37,22 +36,33 @@ namespace CommandAndConquer.Units.Buggy
         {
             base.Initialize();
 
-            // Récupérer le GridManager
-            gridManager = FindFirstObjectByType<GridManager>();
+            // Initialiser le contexte partagé
+            context = new BuggyContext();
 
+            // Trouver le GridManager temporairement pour obtenir la position initiale
+            GridManager gridManager = FindFirstObjectByType<GridManager>();
             if (gridManager == null)
             {
                 Debug.LogError("[BuggyController] GridManager not found in scene!");
                 return;
             }
 
-            // Initialiser la position sur la grille
-            currentGridPosition = gridManager.GetGridPosition(transform.position);
+            GridPosition initialPosition = gridManager.GetGridPosition(transform.position);
+
+            // Initialiser le contexte avec toutes les références
+            context.Initialize(this, buggyData, initialPosition);
+
+            // Vérifier que le contexte est valide
+            if (!context.IsValid())
+            {
+                Debug.LogError("[BuggyController] Context initialization failed!");
+                return;
+            }
 
             // S'enregistrer auprès du GridManager (gère automatiquement l'occupation)
-            if (!gridManager.RegisterUnit(this, currentGridPosition))
+            if (!context.GridManager.RegisterUnit(this, context.CurrentGridPosition))
             {
-                Debug.LogError($"[BuggyController] Failed to register at {currentGridPosition}");
+                Debug.LogError($"[BuggyController] Failed to register at {context.CurrentGridPosition}");
             }
 
             // Configurer le nom de l'unité
@@ -61,13 +71,13 @@ namespace CommandAndConquer.Units.Buggy
                 unitName = buggyData.unitName;
             }
 
-            Debug.Log($"[BuggyController] {unitName} initialized at {currentGridPosition}");
+            Debug.Log($"[BuggyController] {unitName} initialized at {context.CurrentGridPosition}");
         }
 
         private void OnDestroy()
         {
             // Se désenregistrer du GridManager (libère automatiquement la cellule)
-            gridManager?.UnregisterUnit(this);
+            context?.GridManager?.UnregisterUnit(this);
         }
 
         // IMovable implementation
@@ -87,13 +97,14 @@ namespace CommandAndConquer.Units.Buggy
         // OnSelected() et OnDeselected() sont déjà implémentées
 
         // Getters
-        public GridPosition CurrentGridPosition => currentGridPosition;
+        public GridPosition CurrentGridPosition => context.CurrentGridPosition;
         public BuggyData Data => buggyData;
+        public BuggyContext Context => context;
 
         // Sera appelé par BuggyMovement quand la position change
         public void UpdateGridPosition(GridPosition newPosition)
         {
-            currentGridPosition = newPosition;
+            context.UpdateGridPosition(newPosition);
         }
     }
 }
