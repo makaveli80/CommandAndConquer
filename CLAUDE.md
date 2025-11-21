@@ -13,8 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current State
 
-**Branch**: `feature/add-artillery-unit`
-**Phase**: Refactoring - Shared vehicle systems ✅ COMPLETE
+**Branch**: `feature/selection-visual-upgrade`
+**Phase**: Selection system visual enhancement ✅ COMPLETE
 
 ### Completed Features
 - ✅ Grid system (20x20, 1.0 unit cells)
@@ -22,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Buggy unit with grid-based movement (speed: 4.0)
 - ✅ Artillery unit with grid-based movement (speed: 1.5)
 - ✅ Mouse-based selection system (click to select/move units)
+- ✅ **Corner bracket selection visual** (white L-shaped brackets in 4 corners)
 - ✅ State machine for unit movement (Idle, Moving, WaitingForNextCell, Blocked)
 - ✅ GridPathfinder utility for path calculation (8 directions)
 - ✅ Modular debug visualization system
@@ -33,11 +34,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **VehicleMovement** - Factorized movement logic (~574 lines eliminated)
 - ✅ **VehicleContext** - Centralized shared state for vehicles
 - ✅ **SelectableComponent** - Reusable selection visual feedback (~50 lines eliminated)
+- ✅ **CornerBracketSelector** - Professional corner bracket selection visual system
 
 ### Next Steps
-**Option A:** Commit refactorings and continue with 3rd unit (Tank/Harvester)
+**Option A:** Add cursor system for hover and destination feedback
 **Option B:** Add 8-direction animations for vehicles
-**Option C:** Implement advanced features (multi-selection, formations, combat)
+**Option C:** Continue with 3rd unit (Tank/Harvester)
+**Option D:** Implement advanced features (multi-selection, formations, combat)
 
 See BUGGY_IMPLEMENTATION.md and ROADMAP.md for detailed plan.
 
@@ -53,7 +56,9 @@ CommandAndConquer/
 ├── Grid/           # Grid system (depends on Core)
 ├── Camera/         # RTS camera (minimal dependencies)
 ├── Units/          # Unit implementations (depends on Core, Grid)
-│   ├── Common/     # Shared vehicle systems (VehicleMovement, SelectableComponent)
+│   ├── Common/     # Shared vehicle systems
+│   │   ├── Vehicle/     # VehicleMovement, VehicleContext
+│   │   └── Selection/   # SelectableComponent, CornerBracketSelector
 │   ├── Buggy/      # Fast reconnaissance vehicle
 │   └── Artillery/  # Slow heavy artillery
 └── Map/            # Terrain and tilemap
@@ -66,7 +71,7 @@ Core (foundation)
  ├─> Grid (uses GridPosition)
  ├─> Camera (uses config types)
  ├─> Units (uses UnitBase, IMovable, ISelectable, GridPosition, UnitData)
- │    ├─> Common (shared: VehicleMovement, VehicleContext, SelectableComponent)
+ │    ├─> Common (shared: VehicleMovement, SelectableComponent, CornerBracketSelector)
  │    ├─> Buggy (uses Common)
  │    └─> Artillery (uses Common)
  └─> Map (uses Grid for alignment)
@@ -205,7 +210,89 @@ private void Update() {
 
 **Collision Prevention**: Uses atomic `TryMoveUnitTo()` to prevent race conditions where multiple units try to occupy the same cell simultaneously.
 
-### 4. Camera System (`CommandAndConquer.Camera`)
+### 4. Selection System (`CommandAndConquer.Units.Common`)
+
+**Purpose**: Visual feedback system for unit selection with professional corner brackets
+
+**Key Files**:
+- `Units/Common/Selection/SelectableComponent.cs` - Selection coordinator
+- `Units/Common/Selection/CornerBracketSelector.cs` - Corner bracket visual display
+- `Units/Common/Selection/SelectionVisualType.cs` - Enum for visual types
+- `Units/Common/Selection/Sprites/corner_bracket_l.png` - White L-shaped sprite
+
+**Architecture**:
+
+The selection system uses a **coordinator pattern** where `SelectableComponent` acts as the central controller:
+
+```
+UnitBase (events)
+    ↓ OnSelectedEvent / OnDeselectedEvent
+SelectableComponent (coordinator)
+    ↓ calls ShowBrackets() / HideBrackets()
+CornerBracketSelector (passive display)
+    → Creates 4 corner GameObjects with sprites
+```
+
+**SelectableComponent** (Coordinator):
+- Subscribes to `UnitBase.OnSelectedEvent` and `OnDeselectedEvent`
+- Supports multiple visual types via `SelectionVisualType` enum
+- Controls `CornerBracketSelector` by calling public methods
+- Can switch between `SpriteColor` (legacy) and `CornerBrackets` (new)
+
+**CornerBracketSelector** (Passive Component):
+- Creates 4 child GameObjects with rotated L-shaped sprites
+- **Does NOT** subscribe to events (passive, controlled by SelectableComponent)
+- Exposes `ShowBrackets()` and `HideBrackets()` public methods
+- Configurable distance, size, sorting order, and sprite
+
+**Visual Types**:
+```csharp
+public enum SelectionVisualType {
+    SpriteColor,      // Changes sprite color (legacy)
+    CornerBrackets    // Shows white L-brackets in corners (default)
+}
+```
+
+**Corner Bracket Configuration**:
+```csharp
+[Header("Corner Bracket Settings")]
+[SerializeField] private Sprite cornerBracketSprite;    // L-shaped white sprite
+[SerializeField] private float cornerDistance = 0.5f;   // Distance from center
+[SerializeField] private float cornerSize = 0.25f;      // Sprite scale
+[SerializeField] private int sortingOrder = 10;         // Render above unit
+```
+
+**Corner Rotations** (for proper bracket orientation):
+- **Top-Left**: 0° → ┌
+- **Top-Right**: -90° → ┐
+- **Bottom-Right**: 180° → ┘
+- **Bottom-Left**: 90° → └
+
+**Usage on Units**:
+
+Both `Buggy` and `Artillery` prefabs have:
+1. `SelectableComponent` with `visualType = CornerBrackets`
+2. `CornerBracketSelector` with sprite and configuration
+3. White L-sprite assigned in Inspector
+
+**Key Methods**:
+```csharp
+// SelectableComponent (called by UnitBase events)
+private void HandleSelected()   // Triggers visual feedback
+private void HandleDeselected() // Removes visual feedback
+
+// CornerBracketSelector (called by SelectableComponent)
+public void ShowBrackets()  // Activates 4 corner sprites
+public void HideBrackets()  // Deactivates 4 corner sprites
+```
+
+**Design Principles**:
+- **Separation of Concerns**: SelectableComponent = logic, CornerBracketSelector = display
+- **Reusability**: CornerBracketSelector can be controlled by any system
+- **Flexibility**: Easy to add new visual types (health bars, circles, etc.)
+- **Performance**: Sprites created once in Awake(), only toggled on/off
+
+### 5. Camera System (`CommandAndConquer.Camera`)
 
 **Purpose**: RTS-style camera with WASD, edge scrolling, and zoom
 

@@ -167,6 +167,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2084930689957345034, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
       propertyPath: m_Name
       value: Buggy 01
@@ -9426,7 +9430,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1582154197
+--- !u!1001 &1836419692
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -9576,4 +9580,4 @@ SceneRoots:
   - {fileID: 1314372842}
   - {fileID: 1164628431}
   - {fileID: 297460423}
-  - {fileID: 1582154197}
+  - {fileID: 1836419692}

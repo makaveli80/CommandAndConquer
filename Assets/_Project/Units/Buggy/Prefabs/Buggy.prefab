@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4983106124782636844}
   - component: {fileID: 8190634444531752554}
   - component: {fileID: 2084930689957345034}
+  - component: {fileID: -97023056932080027}
   m_Layer: 0
   m_Name: Buggy
   m_TagString: Untagged
@@ -191,7 +192,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 003bc06b9b89abc45868956021f3b013, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.SelectableComponent
-  visualType: 0
+  visualType: 1
   selectedColor: {r: 0.5, g: 1, b: 0.5, a: 1}
-  selectionCirclePrefab: {fileID: 0}
-  selectionSound: {fileID: 0}
+--- !u!114 &-97023056932080027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5701200027075343907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2b4f5685152187488542e06a68be55e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.CornerBracketSelector
+  cornerBracketSprite: {fileID: 1905206399012431245, guid: 4d1675b942055d148a1bc542b6ab7f60, type: 3}
+  cornerDistance: 0.3
+  cornerSize: 2
+  sortingOrder: 10
+  sortingLayerName: Default
