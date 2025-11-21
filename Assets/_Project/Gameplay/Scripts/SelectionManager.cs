@@ -16,6 +16,10 @@ namespace CommandAndConquer.Gameplay
         [Tooltip("Référence au GridManager de la scène")]
         private GridManager gridManager;
 
+        [SerializeField]
+        [Tooltip("Référence au CursorManager de la scène")]
+        private CursorManager cursorManager;
+
         [Header("Raycast Settings")]
         [SerializeField]
         [Tooltip("Layer utilisé pour les unités (devra être configuré)")]
@@ -27,6 +31,9 @@ namespace CommandAndConquer.Gameplay
 
         // Unité actuellement sélectionnée
         private ISelectable currentSelection;
+
+        // Unité actuellement survolée (pour le curseur)
+        private ISelectable currentHoveredUnit;
 
         // Camera de la scène
         private Camera mainCamera;
@@ -60,6 +67,16 @@ namespace CommandAndConquer.Gameplay
                     Debug.LogError("[SelectionManager] GridManager not found in scene!");
                 }
             }
+
+            // Trouver le CursorManager si pas assigné dans l'inspecteur
+            if (cursorManager == null)
+            {
+                cursorManager = FindFirstObjectByType<CursorManager>();
+                if (cursorManager == null)
+                {
+                    Debug.LogWarning("[SelectionManager] CursorManager not found in scene! Cursor feedback will be disabled.");
+                }
+            }
         }
 
         private void Update()
@@ -76,6 +93,15 @@ namespace CommandAndConquer.Gameplay
             if (mouse.rightButton.wasPressedThisFrame)
             {
                 HandleRightClick();
+            }
+
+            // Détection de survol pour le curseur (priorité: unité > destination > défaut)
+            bool isHoveringUnit = HandleUnitHover();
+
+            // Afficher le curseur de destination seulement si pas en train de survoler une unité
+            if (!isHoveringUnit)
+            {
+                HandleDestinationHover();
             }
         }
 
@@ -166,6 +192,101 @@ namespace CommandAndConquer.Gameplay
                 currentSelection.OnDeselected();
                 currentSelection = null;
                 Debug.Log("[SelectionManager] Unit deselected");
+            }
+        }
+
+        /// <summary>
+        /// Détecte le survol d'unités et met à jour le curseur.
+        /// Retourne true si une unité est actuellement survolée.
+        /// </summary>
+        private bool HandleUnitHover()
+        {
+            if (cursorManager == null) return false;
+
+            Vector2 mousePosition = mouse.position.ReadValue();
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+
+            RaycastHit2D hit = Physics2D.GetRayIntersection(ray, raycastDistance, unitLayerMask);
+
+            if (hit.collider != null)
+            {
+                // Vérifier si l'objet touché est une unité sélectionnable
+                ISelectable hoveredUnit = hit.collider.GetComponent<ISelectable>();
+
+                if (hoveredUnit != null)
+                {
+                    if (hoveredUnit != currentHoveredUnit)
+                    {
+                        // Nouvelle unité survolée
+                        currentHoveredUnit = hoveredUnit;
+                        cursorManager.SetCursor(CursorType.Hover);
+                    }
+                    return true; // Une unité est survolée
+                }
+            }
+
+            // Plus d'unité survolée
+            if (currentHoveredUnit != null)
+            {
+                currentHoveredUnit = null;
+                cursorManager.ResetCursor();
+            }
+
+            return false; // Aucune unité survolée
+        }
+
+        /// <summary>
+        /// Détecte le survol de destinations valides et met à jour le curseur.
+        /// N'affiche le curseur de mouvement que si une unité est sélectionnée ET la destination est valide.
+        /// </summary>
+        private void HandleDestinationHover()
+        {
+            if (cursorManager == null || gridManager == null) return;
+
+            // Ne montrer le curseur de destination que si une unité est sélectionnée
+            if (currentSelection == null)
+            {
+                cursorManager.ResetCursor();
+                return;
+            }
+
+            // Vérifier que l'unité peut bouger
+            IMovable movable = currentSelection as IMovable;
+            if (movable == null)
+            {
+                cursorManager.ResetCursor();
+                return;
+            }
+
+            // Obtenir la position de la souris dans le monde
+            Vector2 mousePosition = mouse.position.ReadValue();
+            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(mousePosition);
+            worldPosition.z = 0; // 2D
+
+            // Convertir en position de grille
+            GridPosition targetGridPosition = gridManager.GetGridPosition(worldPosition);
+
+            // Vérifier que la position est valide ET disponible
+            if (gridManager.IsValidGridPosition(targetGridPosition))
+            {
+                // Obtenir l'unité sélectionnée comme UnitBase pour la vérification de disponibilité
+                UnitBase selectedUnit = currentSelection as UnitBase;
+
+                if (selectedUnit != null && gridManager.IsCellAvailableFor(targetGridPosition, selectedUnit))
+                {
+                    // Destination valide: afficher le curseur de mouvement
+                    cursorManager.SetCursor(CursorType.Move);
+                }
+                else
+                {
+                    // Cellule occupée: curseur par défaut
+                    cursorManager.ResetCursor();
+                }
+            }
+            else
+            {
+                // Position invalide (hors grille): curseur par défaut
+                cursorManager.ResetCursor();
             }
         }
 

@@ -1,0 +1,19 @@
+{
+  "name": "CommandAndConquer.Gameplay.Editor",
+  "rootNamespace": "CommandAndConquer.Gameplay.Editor",
+  "references": [
+    "CommandAndConquer.Core",
+    "CommandAndConquer.Gameplay"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

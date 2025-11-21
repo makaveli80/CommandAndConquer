@@ -8,6 +8,11 @@ namespace CommandAndConquer.Units.Common
         /// <summary>
         /// Change la couleur du sprite de l'unité.
         /// </summary>
-        SpriteColor
+        SpriteColor,
+
+        /// <summary>
+        /// Affiche des encoches en forme de L dans les 4 coins.
+        /// </summary>
+        CornerBrackets
     }
 }

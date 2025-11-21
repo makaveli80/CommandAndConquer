@@ -13,8 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current State
 
-**Branch**: `feature/add-artillery-unit`
-**Phase**: Refactoring - Shared vehicle systems ✅ COMPLETE
+**Branch**: `feature/selection-visual-upgrade`
+**Phase**: Selection system visual enhancement ✅ COMPLETE
 
 ### Completed Features
 - ✅ Grid system (20x20, 1.0 unit cells)
@@ -22,6 +22,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Buggy unit with grid-based movement (speed: 4.0)
 - ✅ Artillery unit with grid-based movement (speed: 1.5)
 - ✅ Mouse-based selection system (click to select/move units)
+- ✅ **Corner bracket selection visual** (white L-shaped brackets in 4 corners)
+- ✅ **Animated cursor system** (hover + destination feedback)
+  - Hover cursor: 6-frame animation when hovering units
+  - Move cursor: 4-frame animation for valid movement destinations
+  - Priority system: Hover > Move > Default
 - ✅ State machine for unit movement (Idle, Moving, WaitingForNextCell, Blocked)
 - ✅ GridPathfinder utility for path calculation (8 directions)
 - ✅ Modular debug visualization system
@@ -33,11 +38,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **VehicleMovement** - Factorized movement logic (~574 lines eliminated)
 - ✅ **VehicleContext** - Centralized shared state for vehicles
 - ✅ **SelectableComponent** - Reusable selection visual feedback (~50 lines eliminated)
+- ✅ **CornerBracketSelector** - Professional corner bracket selection visual system
 
 ### Next Steps
-**Option A:** Commit refactorings and continue with 3rd unit (Tank/Harvester)
+**Option A:** Add cursor system for hover and destination feedback
 **Option B:** Add 8-direction animations for vehicles
-**Option C:** Implement advanced features (multi-selection, formations, combat)
+**Option C:** Continue with 3rd unit (Tank/Harvester)
+**Option D:** Implement advanced features (multi-selection, formations, combat)
 
 See BUGGY_IMPLEMENTATION.md and ROADMAP.md for detailed plan.
 
@@ -52,8 +59,11 @@ CommandAndConquer/
 ├── Core/           # Base classes, interfaces, shared types (no dependencies)
 ├── Grid/           # Grid system (depends on Core)
 ├── Camera/         # RTS camera (minimal dependencies)
+├── Gameplay/       # Gameplay systems (selection, cursor)
 ├── Units/          # Unit implementations (depends on Core, Grid)
-│   ├── Common/     # Shared vehicle systems (VehicleMovement, SelectableComponent)
+│   ├── Common/     # Shared vehicle systems
+│   │   ├── Vehicle/     # VehicleMovement, VehicleContext
+│   │   └── Selection/   # SelectableComponent, CornerBracketSelector
 │   ├── Buggy/      # Fast reconnaissance vehicle
 │   └── Artillery/  # Slow heavy artillery
 └── Map/            # Terrain and tilemap
@@ -65,8 +75,9 @@ CommandAndConquer/
 Core (foundation)
  ├─> Grid (uses GridPosition)
  ├─> Camera (uses config types)
+ ├─> Gameplay (uses Core, Grid - SelectionManager, CursorManager)
  ├─> Units (uses UnitBase, IMovable, ISelectable, GridPosition, UnitData)
- │    ├─> Common (shared: VehicleMovement, VehicleContext, SelectableComponent)
+ │    ├─> Common (shared: VehicleMovement, SelectableComponent, CornerBracketSelector)
  │    ├─> Buggy (uses Common)
  │    └─> Artillery (uses Common)
  └─> Map (uses Grid for alignment)
@@ -205,7 +216,89 @@ private void Update() {
 
 **Collision Prevention**: Uses atomic `TryMoveUnitTo()` to prevent race conditions where multiple units try to occupy the same cell simultaneously.
 
-### 4. Camera System (`CommandAndConquer.Camera`)
+### 4. Selection System (`CommandAndConquer.Units.Common`)
+
+**Purpose**: Visual feedback system for unit selection with professional corner brackets
+
+**Key Files**:
+- `Units/Common/Selection/SelectableComponent.cs` - Selection coordinator
+- `Units/Common/Selection/CornerBracketSelector.cs` - Corner bracket visual display
+- `Units/Common/Selection/SelectionVisualType.cs` - Enum for visual types
+- `Units/Common/Selection/Sprites/corner_bracket_l.png` - White L-shaped sprite
+
+**Architecture**:
+
+The selection system uses a **coordinator pattern** where `SelectableComponent` acts as the central controller:
+
+```
+UnitBase (events)
+    ↓ OnSelectedEvent / OnDeselectedEvent
+SelectableComponent (coordinator)
+    ↓ calls ShowBrackets() / HideBrackets()
+CornerBracketSelector (passive display)
+    → Creates 4 corner GameObjects with sprites
+```
+
+**SelectableComponent** (Coordinator):
+- Subscribes to `UnitBase.OnSelectedEvent` and `OnDeselectedEvent`
+- Supports multiple visual types via `SelectionVisualType` enum
+- Controls `CornerBracketSelector` by calling public methods
+- Can switch between `SpriteColor` (legacy) and `CornerBrackets` (new)
+
+**CornerBracketSelector** (Passive Component):
+- Creates 4 child GameObjects with rotated L-shaped sprites
+- **Does NOT** subscribe to events (passive, controlled by SelectableComponent)
+- Exposes `ShowBrackets()` and `HideBrackets()` public methods
+- Configurable distance, size, sorting order, and sprite
+
+**Visual Types**:
+```csharp
+public enum SelectionVisualType {
+    SpriteColor,      // Changes sprite color (legacy)
+    CornerBrackets    // Shows white L-brackets in corners (default)
+}
+```
+
+**Corner Bracket Configuration**:
+```csharp
+[Header("Corner Bracket Settings")]
+[SerializeField] private Sprite cornerBracketSprite;    // L-shaped white sprite
+[SerializeField] private float cornerDistance = 0.5f;   // Distance from center
+[SerializeField] private float cornerSize = 0.25f;      // Sprite scale
+[SerializeField] private int sortingOrder = 10;         // Render above unit
+```
+
+**Corner Rotations** (for proper bracket orientation):
+- **Top-Left**: 0° → ┌
+- **Top-Right**: -90° → ┐
+- **Bottom-Right**: 180° → ┘
+- **Bottom-Left**: 90° → └
+
+**Usage on Units**:
+
+Both `Buggy` and `Artillery` prefabs have:
+1. `SelectableComponent` with `visualType = CornerBrackets`
+2. `CornerBracketSelector` with sprite and configuration
+3. White L-sprite assigned in Inspector
+
+**Key Methods**:
+```csharp
+// SelectableComponent (called by UnitBase events)
+private void HandleSelected()   // Triggers visual feedback
+private void HandleDeselected() // Removes visual feedback
+
+// CornerBracketSelector (called by SelectableComponent)
+public void ShowBrackets()  // Activates 4 corner sprites
+public void HideBrackets()  // Deactivates 4 corner sprites
+```
+
+**Design Principles**:
+- **Separation of Concerns**: SelectableComponent = logic, CornerBracketSelector = display
+- **Reusability**: CornerBracketSelector can be controlled by any system
+- **Flexibility**: Easy to add new visual types (health bars, circles, etc.)
+- **Performance**: Sprites created once in Awake(), only toggled on/off
+
+### 5. Camera System (`CommandAndConquer.Camera`)
 
 **Purpose**: RTS-style camera with WASD, edge scrolling, and zoom
 
@@ -218,6 +311,117 @@ private void Update() {
 - WASD/Arrows: Move camera
 - Mouse edges: Edge scrolling
 - Mouse wheel: Zoom in/out
+
+### 6. Cursor System (`CommandAndConquer.Gameplay`)
+
+**Purpose**: Dynamic cursor feedback system with animated cursors for unit hover and movement destination
+
+**Key Files**:
+- `Gameplay/Scripts/CursorManager.cs` - Singleton cursor manager with animation support
+- `Gameplay/Scripts/CursorType.cs` - Enum for cursor types
+- `Gameplay/Scripts/SelectionManager.cs` - Handles unit hover and destination detection
+- `Gameplay/Editor/CursorSpriteImporter.cs` - Auto-configures cursor sprites
+
+**Architecture**:
+
+The cursor system uses a **singleton pattern** where `CursorManager` manages cursor state and `SelectionManager` triggers cursor changes based on hover detection:
+
+```
+SelectionManager (hover + destination detection)
+    ↓ calls SetCursor() / ResetCursor()
+CursorManager (singleton)
+    ↓ uses Unity Cursor API
+Cursor.SetCursor(Texture2D, hotspot, mode)
+```
+
+**CursorManager** (Singleton):
+- Manages cursor textures for different states
+- Supports animated cursors (multiple frames with configurable FPS)
+- Exposes `SetCursor(CursorType)` and `ResetCursor()` public API
+- Updates animation frames in Update() when active
+
+**SelectionManager** (Detection System):
+- **`HandleUnitHover()`** - Returns bool, detects units under cursor
+- **`HandleDestinationHover()`** - Detects valid movement destinations (only when unit selected)
+- **Priority system**: Hover cursor > Move cursor > Default cursor
+- Performs raycast + grid validation every frame
+- Only shows Move cursor on valid, available cells
+
+**Cursor Types**:
+```csharp
+public enum CursorType {
+    Default,  // System default cursor
+    Hover,    // Animated cursor when hovering friendly units (6 frames)
+    Move      // Animated cursor for movement destination (4 frames)
+}
+```
+
+**Cursor Configuration**:
+```csharp
+[Header("Cursor Textures")]
+[SerializeField] private Texture2D[] hoverUnitFrames;      // 6 frames for hover animation
+[SerializeField] private Texture2D[] moveCursorFrames;     // 4 frames for move animation
+
+[Header("Animation Settings")]
+[SerializeField] private float animationFPS = 10f;         // Animation speed
+
+[Header("Cursor Hotspot")]
+[SerializeField] private Vector2 cursorHotspot = new Vector2(24, 24);  // Click point (center for 48x48)
+```
+
+**Sprite Import Settings** (Auto-configured by CursorSpriteImporter):
+- **isReadable**: true (REQUIRED for Cursor.SetCursor)
+- **Filter Mode**: Point (pixel perfect)
+- **Compression**: None
+- **Alpha Is Transparency**: true
+- **Max Size**: 64 (optimal for cursors)
+- **Mipmap**: false
+
+**Setup in Unity**:
+1. Create empty GameObject "CursorManager" in scene
+2. Add `CursorManager` component
+3. Assign cursor sprite arrays in Inspector (e.g., 6 frames for hover animation)
+4. Configure hotspot (center of cursor sprite, e.g., (24,24) for 48x48 cursor)
+5. Link `CursorManager` reference in `SelectionManager`
+6. Run menu: `Tools > Command & Conquer > Reconfigure Cursor Sprites` (one-time setup)
+
+**Key Methods**:
+```csharp
+// CursorManager (public API)
+public void SetCursor(CursorType type)  // Changes cursor to specified type
+public void ResetCursor()                // Resets to system default
+
+// SelectionManager (hover + destination detection)
+private bool HandleUnitHover()           // Detects units under cursor, returns true if hovering
+private void HandleDestinationHover()    // Detects valid move destinations (only when unit selected)
+```
+
+**Cursor Priority System** (Update() flow):
+1. **HandleUnitHover()** runs first → Returns `true` if unit is hovered
+2. **HandleDestinationHover()** runs only if no unit is hovered
+3. Result: **Hover cursor** always takes precedence over **Move cursor**
+
+**Destination Validation**:
+- Move cursor only appears when:
+  - A unit is selected (`currentSelection != null`)
+  - Unit is movable (`IMovable` interface)
+  - Mouse is over valid grid cell (`IsValidGridPosition`)
+  - Cell is available (`IsCellAvailableFor`)
+- Invalid destinations show default cursor (no visual feedback)
+
+**Animation System**:
+- **Hover cursor**: 6 frames animated @ 10 FPS (ICON_SELECT_FRIENDLY_00-05)
+- **Move cursor**: 4 frames animated @ 10 FPS (ICON_MOVEMENT_COMMAND_00-03)
+- Animation updates in `CursorManager.Update()` based on `animationFPS`
+- Frame index cycles through array using modulo: `currentFrame = (currentFrame + 1) % frames.Length`
+- All cursors are now animated (no static cursors)
+
+**Design Principles**:
+- **Singleton Access**: `CursorManager.Instance` available globally
+- **Separation of Concerns**: SelectionManager = detection, CursorManager = display
+- **Priority-based**: Clear hierarchy prevents cursor conflicts
+- **Performance**: Textures loaded once in Inspector, only SetCursor() calls in runtime
+- **Extensibility**: Easy to add new cursor types by extending `CursorType` enum
 
 ## Code Conventions
 

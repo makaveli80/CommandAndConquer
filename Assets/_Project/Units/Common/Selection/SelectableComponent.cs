@@ -5,16 +5,21 @@ namespace CommandAndConquer.Units.Common
 {
     /// <summary>
     /// Composant réutilisable pour gérer la sélection visuelle des unités.
-    /// Change la couleur du sprite quand l'unité est sélectionnée.
+    /// Supporte plusieurs types de feedback visuel (couleur ou corner brackets).
     /// </summary>
     [RequireComponent(typeof(UnitBase))]
     public class SelectableComponent : MonoBehaviour
     {
         #region Configuration
 
-        [Header("Visual Feedback")]
+        [Header("Visual Type")]
         [SerializeField]
-        [Tooltip("Couleur appliquée au sprite quand sélectionné")]
+        [Tooltip("Type de feedback visuel à utiliser")]
+        private SelectionVisualType visualType = SelectionVisualType.CornerBrackets;
+
+        [Header("Visual Feedback - Sprite Color")]
+        [SerializeField]
+        [Tooltip("Couleur appliquée au sprite quand sélectionné (si visualType = SpriteColor)")]
         private Color selectedColor = new Color(0.5f, 1f, 0.5f, 1f); // Vert clair
 
         #endregion
@@ -25,6 +30,9 @@ namespace CommandAndConquer.Units.Common
         private SpriteRenderer spriteRenderer;
         private Color originalColor;
         private bool isSelected = false;
+
+        // Référence au CornerBracketSelector si utilisé
+        private CornerBracketSelector cornerBracketSelector;
 
         #endregion
 
@@ -38,6 +46,17 @@ namespace CommandAndConquer.Units.Common
             if (spriteRenderer != null)
             {
                 originalColor = spriteRenderer.color;
+            }
+
+            // Obtenir le CornerBracketSelector si le type visuel l'utilise
+            if (visualType == SelectionVisualType.CornerBrackets)
+            {
+                cornerBracketSelector = GetComponent<CornerBracketSelector>();
+                if (cornerBracketSelector == null)
+                {
+                    Debug.LogWarning($"[SelectableComponent] CornerBracketSelector not found on {gameObject.name}, but visualType is set to CornerBrackets. Adding component automatically.");
+                    cornerBracketSelector = gameObject.AddComponent<CornerBracketSelector>();
+                }
             }
 
             // S'abonner aux événements de sélection
@@ -89,24 +108,48 @@ namespace CommandAndConquer.Units.Common
         #region Visual Feedback
 
         /// <summary>
-        /// Applique le feedback visuel (changement de couleur du sprite).
+        /// Applique le feedback visuel selon le type configuré.
         /// </summary>
         private void ApplySelectionVisual()
         {
-            if (spriteRenderer != null)
+            switch (visualType)
             {
-                spriteRenderer.color = selectedColor;
+                case SelectionVisualType.SpriteColor:
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.color = selectedColor;
+                    }
+                    break;
+
+                case SelectionVisualType.CornerBrackets:
+                    if (cornerBracketSelector != null)
+                    {
+                        cornerBracketSelector.ShowBrackets();
+                    }
+                    break;
             }
         }
 
         /// <summary>
-        /// Retire le feedback visuel (restaure la couleur d'origine).
+        /// Retire le feedback visuel selon le type configuré.
         /// </summary>
         private void RemoveSelectionVisual()
         {
-            if (spriteRenderer != null)
+            switch (visualType)
             {
-                spriteRenderer.color = originalColor;
+                case SelectionVisualType.SpriteColor:
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.color = originalColor;
+                    }
+                    break;
+
+                case SelectionVisualType.CornerBrackets:
+                    if (cornerBracketSelector != null)
+                    {
+                        cornerBracketSelector.HideBrackets();
+                    }
+                    break;
             }
         }
 
