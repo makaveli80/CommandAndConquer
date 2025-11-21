@@ -29,7 +29,7 @@ Analyse les derniers changements git et génère un message de commit approprié
      - `chore`: Tâches de maintenance
    - La description doit être concise (max 50 caractères)
    - Focus sur le "pourquoi" plutôt que le "quoi"
-   - En français si le projet est en français
+   - En anglais
 
 4. **Présente le message de commit généré** au format:
    ```

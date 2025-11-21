@@ -1,0 +1,19 @@
+{
+    "name": "CommandAndConquer.Units.Editor",
+    "rootNamespace": "CommandAndConquer.Units.Editor",
+    "references": [
+        "CommandAndConquer.Units",
+        "CommandAndConquer.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -112,9 +112,35 @@ docs: add project structure and conventions
 
 ## Développement
 
+### Outils Editor Unity
+
+Le projet inclut des outils Editor personnalisés pour automatiser la configuration des assets :
+
+**Sprite Importers** - Configuration automatique des sprites
+- `TerrainSpriteImporter` - Configure les sprites de terrain (PPU=128, FilterMode=Point)
+- `UnitSpriteImporter` - Configure les sprites d'unités (PPU=128, Multiple mode)
+
+**Menus disponibles :**
+- `Tools > Command & Conquer > Reconfigure All Terrain Sprites`
+- `Tools > Command & Conquer > Reconfigure All Unit Sprites`
+- `Tools > Command & Conquer > Reconfigure Buggy Sprites`
+
+📖 **Documentation complète** : Voir [TOOLS.md](TOOLS.md)
+
 ### Commandes Claude Code
+
 - `/create-unit` - Créer une nouvelle unité avec le template
 - `/test-game` - Lancer la scène de jeu
+- `/gen-commit` - Générer un message de commit basé sur les changements
+
+### Documentation du projet
+
+- [README.md](README.md) - Vue d'ensemble (ce fichier)
+- [ROADMAP.md](ROADMAP.md) - Plan de développement et prochaines étapes
+- [TOOLS.md](TOOLS.md) - Outils Editor et automatisation
+- [CONVENTIONS.md](CONVENTIONS.md) - Standards de code
+- [UNITS.md](UNITS.md) - Catalogue des unités
+- [CHANGELOG.md](CHANGELOG.md) - Historique des changements
 
 ## Licence
 

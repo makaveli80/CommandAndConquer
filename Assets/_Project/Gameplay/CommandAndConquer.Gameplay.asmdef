@@ -1,10 +1,10 @@
 {
-  "name": "CommandAndConquer.Units",
-  "rootNamespace": "CommandAndConquer.Units",
+  "name": "CommandAndConquer.Gameplay",
+  "rootNamespace": "CommandAndConquer.Gameplay",
   "references": [
+    "Unity.InputSystem",
     "CommandAndConquer.Core",
-    "CommandAndConquer.Grid",
-    "Unity.InputSystem"
+    "CommandAndConquer.Grid"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
