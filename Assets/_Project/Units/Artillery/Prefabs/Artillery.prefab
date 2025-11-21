@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 9191078862657430493}
   - component: {fileID: 7892814093044121262}
   - component: {fileID: 2049993655980775013}
+  - component: {fileID: 6225806005099901082}
   m_Layer: 0
   m_Name: Artillery
   m_TagString: Untagged
@@ -153,7 +154,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Artillery.ArtilleryController
   unitName: Artillery
   artilleryData: {fileID: 11400000, guid: 587cd1165a51ea34ab77516e78b45dbb, type: 2}
-  selectedColor: {r: 0.5, g: 1, b: 0.5, a: 1}
 --- !u!114 &2049993655980775013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -166,3 +166,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8bac20b37928d547a215f1921ce2532, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Artillery.ArtilleryMovement
+--- !u!114 &6225806005099901082
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6733659363229217077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 003bc06b9b89abc45868956021f3b013, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.SelectableComponent
+  visualType: 0
+  selectedColor: {r: 0.5, g: 1, b: 0.5, a: 1}
+  selectionCirclePrefab: {fileID: 0}
+  selectionSound: {fileID: 0}

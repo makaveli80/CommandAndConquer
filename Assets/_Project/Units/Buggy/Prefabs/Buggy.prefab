@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2272295191501695506}
   - component: {fileID: 4983106124782636844}
   - component: {fileID: 8190634444531752554}
+  - component: {fileID: 2084930689957345034}
   m_Layer: 0
   m_Name: Buggy
   m_TagString: Untagged
@@ -178,3 +179,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ed41b84f9621a479cb18f659017a49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyMovementDebug
+--- !u!114 &2084930689957345034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5701200027075343907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 003bc06b9b89abc45868956021f3b013, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.SelectableComponent
+  visualType: 0
+  selectedColor: {r: 0.5, g: 1, b: 0.5, a: 1}
+  selectionCirclePrefab: {fileID: 0}
+  selectionSound: {fileID: 0}

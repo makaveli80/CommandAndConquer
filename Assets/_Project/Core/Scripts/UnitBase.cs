@@ -12,6 +12,10 @@ namespace CommandAndConquer.Core
 
         protected bool isSelected;
 
+        // Événements de sélection pour SelectableComponent
+        public event System.Action OnSelectedEvent;
+        public event System.Action OnDeselectedEvent;
+
         protected virtual void Awake()
         {
             // Initialisation de base
@@ -36,6 +40,7 @@ namespace CommandAndConquer.Core
         public virtual void OnSelected()
         {
             isSelected = true;
+            OnSelectedEvent?.Invoke();
         }
 
         /// <summary>
@@ -44,6 +49,7 @@ namespace CommandAndConquer.Core
         public virtual void OnDeselected()
         {
             isSelected = false;
+            OnDeselectedEvent?.Invoke();
         }
 
         public bool IsSelected => isSelected;

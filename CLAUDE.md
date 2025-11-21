@@ -13,23 +13,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current State
 
-**Branch**: `feature/setup-buggy-unit`
-**Phase**: Phase 2 - Buggy unit implementation ✅ COMPLETE
+**Branch**: `feature/add-artillery-unit`
+**Phase**: Refactoring - Shared vehicle systems ✅ COMPLETE
 
 ### Completed Features
 - ✅ Grid system (20x20, 1.0 unit cells)
 - ✅ Camera controller (WASD, edge scroll, zoom)
-- ✅ Buggy unit with grid-based movement
+- ✅ Buggy unit with grid-based movement (speed: 4.0)
+- ✅ Artillery unit with grid-based movement (speed: 1.5)
+- ✅ Mouse-based selection system (click to select/move units)
 - ✅ State machine for unit movement (Idle, Moving, WaitingForNextCell, Blocked)
 - ✅ GridPathfinder utility for path calculation (8 directions)
 - ✅ Modular debug visualization system
 - ✅ Collision detection and avoidance system with retry mechanism
 - ✅ Atomic cell reservation system (prevents race conditions)
-- ✅ Multi-unit collision handling validated (Step 7)
+- ✅ Multi-unit collision handling validated
+
+### Recent Refactorings
+- ✅ **VehicleMovement** - Factorized movement logic (~574 lines eliminated)
+- ✅ **VehicleContext** - Centralized shared state for vehicles
+- ✅ **SelectableComponent** - Reusable selection visual feedback (~50 lines eliminated)
 
 ### Next Steps
-**Option A:** Commit 9 (ROADMAP) - Implement selection system (mouse click to select/move units)
-**Option B:** Step 8 (BUGGY_IMPLEMENTATION) - Add 8-direction animations (optional)
+**Option A:** Commit refactorings and continue with 3rd unit (Tank/Harvester)
+**Option B:** Add 8-direction animations for vehicles
+**Option C:** Implement advanced features (multi-selection, formations, combat)
 
 See BUGGY_IMPLEMENTATION.md and ROADMAP.md for detailed plan.
 
@@ -45,7 +53,9 @@ CommandAndConquer/
 ├── Grid/           # Grid system (depends on Core)
 ├── Camera/         # RTS camera (minimal dependencies)
 ├── Units/          # Unit implementations (depends on Core, Grid)
-│   └── Buggy/      # First unit implementation
+│   ├── Common/     # Shared vehicle systems (VehicleMovement, SelectableComponent)
+│   ├── Buggy/      # Fast reconnaissance vehicle
+│   └── Artillery/  # Slow heavy artillery
 └── Map/            # Terrain and tilemap
 ```
 
@@ -56,7 +66,9 @@ Core (foundation)
  ├─> Grid (uses GridPosition)
  ├─> Camera (uses config types)
  ├─> Units (uses UnitBase, IMovable, ISelectable, GridPosition, UnitData)
- │    └─> requires Grid (for movement)
+ │    ├─> Common (shared: VehicleMovement, VehicleContext, SelectableComponent)
+ │    ├─> Buggy (uses Common)
+ │    └─> Artillery (uses Common)
  └─> Map (uses Grid for alignment)
 ```
 
@@ -450,5 +462,5 @@ git log --oneline -5
 ---
 
 **Last Updated**: 2025-01-21
-**Current Focus**: Buggy unit fully validated (7/8 steps complete)
-**Next Milestone**: Selection system (Commit 9) or animations (Step 8 - optional)
+**Current Focus**: Two working vehicle units (Buggy + Artillery) with shared refactored systems
+**Next Milestone**: 3rd unit (Tank/Harvester), animations, or advanced features

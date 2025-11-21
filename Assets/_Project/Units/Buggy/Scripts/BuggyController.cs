@@ -7,27 +7,18 @@ namespace CommandAndConquer.Units.Buggy
     /// <summary>
     /// Contrôleur principal de l'unité Buggy.
     /// Gère l'initialisation et coordonne les différents composants.
+    /// Note: SelectableComponent gère le feedback visuel de sélection.
     /// </summary>
-    [RequireComponent(typeof(SpriteRenderer))]
     public class BuggyController : UnitBase, IMovable, ISelectable
     {
         [Header("Buggy Configuration")]
         [SerializeField] private BuggyData buggyData;
 
-        [Header("Selection Visual Feedback")]
-        [SerializeField]
-        [Tooltip("Couleur du sprite quand l'unité est sélectionnée")]
-        private Color selectedColor = new Color(0.5f, 1f, 0.5f, 1f); // Vert clair
-
         // Composants
         private BuggyMovement movement;
-        private SpriteRenderer spriteRenderer;
 
         // Contexte partagé
         private BuggyContext context;
-
-        // Couleur d'origine du sprite
-        private Color originalColor;
 
         // IMovable properties
         public bool IsMoving => movement != null && movement.IsMoving;
@@ -39,13 +30,6 @@ namespace CommandAndConquer.Units.Buggy
 
             // Récupérer les composants
             movement = GetComponent<BuggyMovement>();
-            spriteRenderer = GetComponent<SpriteRenderer>();
-
-            // Sauvegarder la couleur d'origine
-            if (spriteRenderer != null)
-            {
-                originalColor = spriteRenderer.color;
-            }
         }
 
         protected override void Initialize()
@@ -109,30 +93,16 @@ namespace CommandAndConquer.Units.Buggy
             }
         }
 
-        // ISelectable implementation avec feedback visuel
+        // ISelectable implementation (feedback visuel géré par SelectableComponent)
         public override void OnSelected()
         {
             base.OnSelected();
-
-            // Changer la couleur du sprite
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.color = selectedColor;
-            }
-
             Debug.Log($"[BuggyController] {unitName} selected");
         }
 
         public override void OnDeselected()
         {
             base.OnDeselected();
-
-            // Restaurer la couleur d'origine
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.color = originalColor;
-            }
-
             Debug.Log($"[BuggyController] {unitName} deselected");
         }
 
