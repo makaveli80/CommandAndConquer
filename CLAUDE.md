@@ -23,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Artillery unit with grid-based movement (speed: 1.5)
 - ✅ Mouse-based selection system (click to select/move units)
 - ✅ **Corner bracket selection visual** (white L-shaped brackets in 4 corners)
+- ✅ **Animated cursor system** (hover feedback with 6-frame animation)
 - ✅ State machine for unit movement (Idle, Moving, WaitingForNextCell, Blocked)
 - ✅ GridPathfinder utility for path calculation (8 directions)
 - ✅ Modular debug visualization system
@@ -55,6 +56,7 @@ CommandAndConquer/
 ├── Core/           # Base classes, interfaces, shared types (no dependencies)
 ├── Grid/           # Grid system (depends on Core)
 ├── Camera/         # RTS camera (minimal dependencies)
+├── Gameplay/       # Gameplay systems (selection, cursor)
 ├── Units/          # Unit implementations (depends on Core, Grid)
 │   ├── Common/     # Shared vehicle systems
 │   │   ├── Vehicle/     # VehicleMovement, VehicleContext
@@ -70,6 +72,7 @@ CommandAndConquer/
 Core (foundation)
  ├─> Grid (uses GridPosition)
  ├─> Camera (uses config types)
+ ├─> Gameplay (uses Core, Grid - SelectionManager, CursorManager)
  ├─> Units (uses UnitBase, IMovable, ISelectable, GridPosition, UnitData)
  │    ├─> Common (shared: VehicleMovement, SelectableComponent, CornerBracketSelector)
  │    ├─> Buggy (uses Common)
@@ -305,6 +308,102 @@ public void HideBrackets()  // Deactivates 4 corner sprites
 - WASD/Arrows: Move camera
 - Mouse edges: Edge scrolling
 - Mouse wheel: Zoom in/out
+
+### 6. Cursor System (`CommandAndConquer.Gameplay`)
+
+**Purpose**: Dynamic cursor feedback system with animated cursor support for unit hover
+
+**Key Files**:
+- `Gameplay/Scripts/CursorManager.cs` - Singleton cursor manager with animation support
+- `Gameplay/Scripts/CursorType.cs` - Enum for cursor types
+- `Gameplay/Scripts/SelectionManager.cs` - Handles unit hover detection
+- `Gameplay/Editor/CursorSpriteImporter.cs` - Auto-configures cursor sprites
+
+**Architecture**:
+
+The cursor system uses a **singleton pattern** where `CursorManager` manages cursor state and `SelectionManager` triggers cursor changes based on hover detection:
+
+```
+SelectionManager (hover detection)
+    ↓ calls SetCursor() / ResetCursor()
+CursorManager (singleton)
+    ↓ uses Unity Cursor API
+Cursor.SetCursor(Texture2D, hotspot, mode)
+```
+
+**CursorManager** (Singleton):
+- Manages cursor textures for different states
+- Supports animated cursors (multiple frames with configurable FPS)
+- Exposes `SetCursor(CursorType)` and `ResetCursor()` public API
+- Updates animation frames in Update() when active
+
+**SelectionManager** (Modified):
+- Added `HandleUnitHover()` method called every frame
+- Performs raycast to detect units under mouse cursor
+- Calls `CursorManager.SetCursor(CursorType.Hover)` when hovering over unit
+- Calls `CursorManager.ResetCursor()` when leaving unit
+
+**Cursor Types**:
+```csharp
+public enum CursorType {
+    Default,              // System default cursor
+    HoverFriendlyUnit,    // Animated cursor when hovering friendly units (6 frames)
+    Move,                 // Movement destination cursor
+    Attack                // Enemy target cursor
+}
+```
+
+**Cursor Configuration**:
+```csharp
+[Header("Cursor Textures")]
+[SerializeField] private Texture2D[] hoverFriendlyUnitFrames;  // 6 frames for animation
+[SerializeField] private Texture2D moveCursor;
+[SerializeField] private Texture2D attackCursor;
+
+[Header("Animation Settings")]
+[SerializeField] private float animationFPS = 10f;              // Animation speed
+
+[Header("Cursor Hotspot")]
+[SerializeField] private Vector2 cursorHotspot = new Vector2(24, 24);  // Click point (center for 48x48)
+```
+
+**Sprite Import Settings** (Auto-configured by CursorSpriteImporter):
+- **isReadable**: true (REQUIRED for Cursor.SetCursor)
+- **Filter Mode**: Point (pixel perfect)
+- **Compression**: None
+- **Alpha Is Transparency**: true
+- **Max Size**: 64 (optimal for cursors)
+- **Mipmap**: false
+
+**Setup in Unity**:
+1. Create empty GameObject "CursorManager" in scene
+2. Add `CursorManager` component
+3. Assign cursor sprite arrays in Inspector (e.g., 6 frames for hover animation)
+4. Configure hotspot (center of cursor sprite, e.g., (24,24) for 48x48 cursor)
+5. Link `CursorManager` reference in `SelectionManager`
+6. Run menu: `Tools > Command & Conquer > Reconfigure Cursor Sprites` (one-time setup)
+
+**Key Methods**:
+```csharp
+// CursorManager (public API)
+public void SetCursor(CursorType type)  // Changes cursor to specified type
+public void ResetCursor()                // Resets to system default
+
+// SelectionManager (hover detection)
+private void HandleUnitHover()          // Detects units under cursor, updates CursorManager
+```
+
+**Animation System**:
+- Cursors with multiple frames (e.g., `hoverFriendlyUnitFrames[]`) are automatically animated
+- Animation updates in `CursorManager.Update()` based on `animationFPS`
+- Frame index cycles through array using modulo: `currentFrame = (currentFrame + 1) % frames.Length`
+- Single-texture cursors (Move, Attack) are static (no animation)
+
+**Design Principles**:
+- **Singleton Access**: `CursorManager.Instance` available globally
+- **Separation of Concerns**: SelectionManager = detection, CursorManager = display
+- **Performance**: Textures loaded once in Inspector, only SetCursor() calls in runtime
+- **Extensibility**: Easy to add new cursor types by extending `CursorType` enum
 
 ## Code Conventions
 

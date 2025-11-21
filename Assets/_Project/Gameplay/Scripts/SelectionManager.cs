@@ -16,6 +16,10 @@ namespace CommandAndConquer.Gameplay
         [Tooltip("Référence au GridManager de la scène")]
         private GridManager gridManager;
 
+        [SerializeField]
+        [Tooltip("Référence au CursorManager de la scène")]
+        private CursorManager cursorManager;
+
         [Header("Raycast Settings")]
         [SerializeField]
         [Tooltip("Layer utilisé pour les unités (devra être configuré)")]
@@ -27,6 +31,9 @@ namespace CommandAndConquer.Gameplay
 
         // Unité actuellement sélectionnée
         private ISelectable currentSelection;
+
+        // Unité actuellement survolée (pour le curseur)
+        private ISelectable currentHoveredUnit;
 
         // Camera de la scène
         private Camera mainCamera;
@@ -60,6 +67,16 @@ namespace CommandAndConquer.Gameplay
                     Debug.LogError("[SelectionManager] GridManager not found in scene!");
                 }
             }
+
+            // Trouver le CursorManager si pas assigné dans l'inspecteur
+            if (cursorManager == null)
+            {
+                cursorManager = FindFirstObjectByType<CursorManager>();
+                if (cursorManager == null)
+                {
+                    Debug.LogWarning("[SelectionManager] CursorManager not found in scene! Cursor feedback will be disabled.");
+                }
+            }
         }
 
         private void Update()
@@ -77,6 +94,9 @@ namespace CommandAndConquer.Gameplay
             {
                 HandleRightClick();
             }
+
+            // Détection de survol pour le curseur
+            HandleUnitHover();
         }
 
         /// <summary>
@@ -166,6 +186,41 @@ namespace CommandAndConquer.Gameplay
                 currentSelection.OnDeselected();
                 currentSelection = null;
                 Debug.Log("[SelectionManager] Unit deselected");
+            }
+        }
+
+        /// <summary>
+        /// Détecte le survol d'unités et met à jour le curseur.
+        /// </summary>
+        private void HandleUnitHover()
+        {
+            if (cursorManager == null) return;
+
+            Vector2 mousePosition = mouse.position.ReadValue();
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+
+            RaycastHit2D hit = Physics2D.GetRayIntersection(ray, raycastDistance, unitLayerMask);
+
+            if (hit.collider != null)
+            {
+                // Vérifier si l'objet touché est une unité sélectionnable
+                ISelectable hoveredUnit = hit.collider.GetComponent<ISelectable>();
+
+                if (hoveredUnit != null && hoveredUnit != currentHoveredUnit)
+                {
+                    // Nouvelle unité survolée
+                    currentHoveredUnit = hoveredUnit;
+                    cursorManager.SetCursor(CursorType.Hover);
+                }
+            }
+            else
+            {
+                // Plus d'unité survolée
+                if (currentHoveredUnit != null)
+                {
+                    currentHoveredUnit = null;
+                    cursorManager.ResetCursor();
+                }
             }
         }
 
