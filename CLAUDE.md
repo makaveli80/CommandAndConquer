@@ -432,6 +432,168 @@ private void HandleDestinationHover()    // Detects valid move destinations (onl
 - **Performance**: Textures loaded once in Inspector, only SetCursor() calls in runtime
 - **Extensibility**: Easy to add new cursor types by extending `CursorType` enum
 
+### 6.5. Multi-Selection System (`CommandAndConquer.Gameplay`)
+
+**Purpose**: Drag box selection system for selecting multiple units simultaneously
+
+**Key Files**:
+- `Gameplay/Scripts/SelectionManager.cs` - Main selection logic with drag detection
+- `Gameplay/Scripts/DragBoxVisual.cs` - Visual UI rectangle component
+
+**Architecture**:
+
+The multi-selection system uses a **HashSet-based approach** where `SelectionManager` tracks all selected units:
+
+```
+User Input (Mouse)
+    ↓ DOWN: Store dragStartPosition
+    ↓ HELD: Check distance > threshold → isDragging = true
+    ↓ MOVE: Update dragCurrentPosition → DragBoxVisual.ShowDragBox()
+    ↓ UP: Physics2D.OverlapAreaAll() → Find units in box
+SelectionManager
+    ↓ ClearSelection() + AddToSelection() for each unit
+UnitBase.OnSelected() (for each unit)
+    ↓ SelectableComponent.HandleSelected()
+    ↓ CornerBracketSelector.ShowBrackets()
+```
+
+**SelectionManager** (Main Controller):
+- **Data Structure**: `HashSet<ISelectable> currentSelections` (no duplicates, O(1) lookups)
+- **Drag Detection**: Monitors mouse DOWN → HELD → UP sequence with `Mouse.current`
+- **Threshold**: `dragThreshold = 5f` pixels (prevents accidental drags)
+- **Physics Query**: `Physics2D.OverlapAreaAll(min, max, unitLayerMask)` for units-in-box detection
+
+**DragBoxVisual** (UI Display):
+- **Canvas UI Overlay**: RectTransform-based green transparent rectangle
+- **Real-time Update**: Position and size updated every frame during drag
+- **Screen Space**: Works directly with mouse position (no world space conversion needed)
+- **Colors**: `boxColor = (0, 1, 0, 0.2)` green transparent, `borderColor = (0, 1, 0, 0.8)` green solid
+
+**Selection Flow**:
+
+**Single Click** (distance < threshold):
+```csharp
+1. Mouse DOWN at position A
+2. Mouse UP at position B (distance < 5px)
+3. HandleSingleClickSelection()
+   - Raycast at dragStartPosition
+   - If hit unit: SetSelection(unit) → Replaces selection
+   - If hit empty: ClearSelection()
+```
+
+**Drag Box** (distance >= threshold):
+```csharp
+1. Mouse DOWN at position A → dragStartPosition = A
+2. Mouse HELD → distance > 5px → isDragging = true
+3. During drag:
+   - Update dragCurrentPosition every frame
+   - DragBoxVisual.ShowDragBox(start, current)
+4. Mouse UP at position B:
+   - Convert start/end to world space
+   - Calculate min/max bounds
+   - Physics2D.OverlapAreaAll(min, max, unitLayerMask)
+   - Filter by ISelectable
+   - ClearSelection() + AddToSelection() for each
+   - DragBoxVisual.HideDragBox()
+```
+
+**Key Methods**:
+```csharp
+// SelectionManager (multi-selection helpers)
+private void AddToSelection(ISelectable selectable)        // Add unit to HashSet
+private void RemoveFromSelection(ISelectable selectable)   // Remove unit from HashSet
+private void SetSelection(ISelectable selectable)          // Replace selection with single unit
+private void ClearSelection()                              // Deselect all units
+private bool IsSelected(ISelectable selectable)            // Check if unit selected
+
+// Drag box detection
+private void HandleSingleClickSelection()  // Raycast-based single selection
+private void HandleDragBoxSelection()      // OverlapArea-based multi-selection
+
+// DragBoxVisual (UI display)
+public void ShowDragBox(Vector2 start, Vector2 current)  // Update rectangle position/size
+public void HideDragBox()                                 // Hide rectangle
+public bool IsVisible { get; }                            // Check if visible
+```
+
+**Configuration**:
+```csharp
+[Header("Drag Box Selection")]
+[SerializeField] private float dragThreshold = 5f;          // Min distance for drag (pixels)
+[SerializeField] private DragBoxVisual dragBoxVisual;       // UI visual component
+
+// DragBoxVisual settings
+[SerializeField] private Color boxColor = new Color(0, 1, 0, 0.2f);      // Green transparent
+[SerializeField] private Color borderColor = new Color(0, 1, 0, 0.8f);   // Green solid
+[SerializeField] private float borderWidth = 2f;                          // Border thickness
+```
+
+**Setup in Unity** (Manual Steps Required):
+
+1. **Create Canvas** (if not exists):
+   - Right-click Hierarchy → UI → Canvas
+   - Set Render Mode: Screen Space - Overlay
+   - Set Canvas Scaler: Scale With Screen Size (1920x1080)
+
+2. **Create Drag Box Image**:
+   - Right-click Canvas → UI → Image
+   - Rename to "DragBoxRect"
+   - Set Anchor: Bottom-Left (0, 0)
+   - Set Pivot: (0, 0)
+   - Set Color: Green with alpha ~50 (0, 255, 0, 128)
+   - Initially deactivated (DragBoxVisual.HideDragBox() in Awake)
+
+3. **Add DragBoxVisual Component**:
+   - Add component to DragBoxRect GameObject
+   - Assign `dragBoxRect` → Self (RectTransform)
+   - Assign `dragBoxImage` → Self (Image component)
+   - Configure colors and border width in Inspector
+
+4. **Link to SelectionManager**:
+   - Find SelectionManager GameObject in scene
+   - Assign `dragBoxVisual` field → DragBoxRect GameObject
+
+**Movement Commands** (Multi-Selection):
+```csharp
+// HandleRightClick() - Updated for multi-selection
+if (currentSelections.Count == 0) return;
+
+foreach (ISelectable selectable in currentSelections) {
+    IMovable movable = selectable as IMovable;
+    if (movable != null) {
+        movable.MoveTo(targetGridPosition);  // All units move to same destination
+    }
+}
+```
+
+**Backward Compatibility**:
+- ✅ Single-click selection works exactly as before
+- ✅ Click on empty space deselects all (same behavior)
+- ✅ Right-click movement commands unchanged for single unit
+- ✅ Cursor system automatically handles multi-selection (checks if ANY unit can move)
+- ✅ Corner brackets show on ALL selected units independently
+
+**Input System Pattern**:
+- **Polling Direct** with `Mouse.current` (NOT Input Actions)
+- `wasPressedThisFrame` → Detect mouse DOWN
+- `isPressed` → Detect ongoing drag
+- `wasReleasedThisFrame` → Detect mouse UP
+- `position.ReadValue()` → Get screen position
+
+**Design Principles**:
+- **HashSet Performance**: O(1) Contains(), Add(), Remove() for fast lookups
+- **No Duplicates**: HashSet automatically prevents duplicate selections
+- **Threshold-Based**: Prevents accidental drags (5px minimum distance)
+- **Event-Driven Visuals**: Each unit manages own visual feedback independently
+- **Separation of Concerns**: SelectionManager = logic, DragBoxVisual = display
+- **No Modifiers**: Clean implementation without Shift/Ctrl (always replaces selection)
+
+**Known Limitations**:
+- All units move to same destination (no formation logic yet)
+- Drag box visual is basic (no border outline, just filled rectangle)
+- No additive selection (Shift+Drag) or toggle (Ctrl+Drag) - future enhancement
+- UI Canvas setup is manual (not automated in script)
+
 ### 7. Animation System (`CommandAndConquer.Units.Common`)
 
 **Purpose**: 8-direction sprite animation system for vehicles based on movement direction
