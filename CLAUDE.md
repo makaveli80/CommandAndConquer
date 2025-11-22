@@ -13,8 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current State
 
-**Branch**: `feature/selection-visual-upgrade`
-**Phase**: Selection system visual enhancement ✅ COMPLETE
+**Branch**: `master`
+**Phase**: Core RTS systems complete ✅ | Ready for expansion (3rd unit, combat, or buildings)
 
 ### Completed Features
 - ✅ Grid system (20x20, 1.0 unit cells)
@@ -38,6 +38,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Collision detection and avoidance system with retry mechanism
 - ✅ Atomic cell reservation system (prevents race conditions)
 - ✅ Multi-unit collision handling validated
+- ✅ **Multi-selection with drag box** (select multiple units simultaneously)
+  - HashSet-based selection tracking (O(1) lookups)
+  - Drag box visual feedback (green transparent rectangle)
+  - Threshold-based drag detection (5px minimum)
+  - Physics2D.OverlapAreaAll for unit detection
+  - All selected units show corner brackets independently
 
 ### Recent Refactorings
 - ✅ **VehicleMovement** - Factorized movement logic (~574 lines eliminated)
@@ -45,13 +51,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **SelectableComponent** - Reusable selection visual feedback (~50 lines eliminated)
 - ✅ **CornerBracketSelector** - Professional corner bracket selection visual system
 
-### Next Steps
-**Option A:** Add cursor system for hover and destination feedback
-**Option B:** Add 8-direction animations for vehicles
-**Option C:** Continue with 3rd unit (Tank/Harvester)
-**Option D:** Implement advanced features (multi-selection, formations, combat)
+### Next Steps (Choose Direction)
+**Option A:** Add 3rd unit (Tank/Harvester/MCV) to validate architecture further
+**Option B:** Implement formation system (multi-unit groups move in formation, not to same point)
+**Option C:** Add combat system (attack, health, damage, death)
+**Option D:** Implement building system (construction yard, refinery, barracks)
+**Option E:** Add AI opponents with basic pathfinding and attack logic
 
-See BUGGY_IMPLEMENTATION.md and ROADMAP.md for detailed plan.
+**Completed since last update (Jan 2025 → Nov 2025):**
+- ✅ Cursor system (Option A - DONE)
+- ✅ 8-direction animations (Option B - DONE)
+- ✅ Multi-selection with drag box (Option D partial - DONE)
+
+See BUGGY_IMPLEMENTATION.md and ROADMAP.md for implementation details.
 
 ## Architecture Overview
 
@@ -956,6 +968,10 @@ git log --oneline -5
 
 ---
 
-**Last Updated**: 2025-01-22
-**Current Focus**: 8-direction animation system implemented (ready for Unity Editor testing)
-**Next Milestone**: Test animation system in Unity, then 3rd unit (Tank/Harvester) or advanced features
+**Last Updated**: 2025-11-23
+**Current Focus**: All core RTS systems operational (movement, selection, multi-selection, animation, cursor feedback)
+**Next Milestone**: Choose expansion path - 3rd unit, combat system, formations, buildings, or AI
+**Recent Milestones Completed**:
+- 2025-11-22: Multi-selection with drag box merged to master
+- 2025-10-22 (approx): 8-direction animation system merged
+- 2025-01-22: Animated cursor system and corner bracket selection merged

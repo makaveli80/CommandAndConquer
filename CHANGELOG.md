@@ -8,7 +8,194 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Phase 1 : Préparation du projet (Commits 1-5)
 
-### Phase 2 : Systèmes de base (Commits 6+)
+### Phase 2 : Systèmes de base (Commits 6-10+) ✅ TERMINÉE
+
+## Multi-selection avec drag box (2025-11-22)
+
+### Ajouté
+- **DragBoxVisual.cs** - Composant UI pour affichage du rectangle de sélection
+  - Rectangle vert transparent avec bordure
+  - Mise à jour en temps réel pendant le drag
+  - Seuil de 5px pour éviter les drags accidentels
+- **SelectionManager** amélioré pour multi-sélection
+  - `HashSet<ISelectable>` pour tracking O(1) sans duplicates
+  - Détection de drag avec threshold
+  - `Physics2D.OverlapAreaAll()` pour sélection par zone
+  - Support simultané simple-clic et drag-box
+- Tous les corner brackets s'affichent indépendamment sur chaque unité sélectionnée
+
+### Modifié
+- SelectionManager passe de single-selection à multi-selection
+- Commandes de mouvement appliquées à toutes les unités sélectionnées
+
+## Système d'animation 8 directions (Oct 2025)
+
+### Ajouté
+- **DirectionType.cs** - Enum pour 8 directions cardinales/intercardinales
+- **DirectionUtils.cs** - Utilitaire de calcul de direction
+  - Conversion vecteur → direction via Atan2
+  - Mapping angles → 8 directions (plages de 45°)
+- **VehicleAnimationData.cs** - ScriptableObject stockage sprites
+  - 8 sprites (E, NE, N, NW, W, SW, S, SE)
+  - Validation sprites assignés
+  - Direction par défaut configurable
+- **VehicleAnimator.cs** - Composant d'animation passif
+  - Polling de VehicleMovement.IsMoving
+  - Calcul direction depuis vecteur mouvement
+  - Mise à jour sprite uniquement si direction change
+  - Mémorisation dernière direction (idle)
+  - Mode debug avec gizmo flèche jaune
+- Assets BuggyAnimationData et ArtilleryAnimationData configurés
+
+### Design
+- Pattern passive polling (pas d'events, Update() monitoring)
+- Performance optimisée (sprite update seulement si changement)
+- Réutilisable pour tous véhicules
+
+## Système de curseur animé (Jan 2025)
+
+### Ajouté
+- **CursorManager.cs** - Singleton gestionnaire curseurs
+  - Support curseurs animés (multiple frames + FPS configurable)
+  - API publique `SetCursor()` / `ResetCursor()`
+  - Animation frame-based dans Update()
+  - 3 types: Default, Hover (6 frames), Move (4 frames)
+- **CursorType.cs** - Enum types de curseurs
+- **CursorSpriteImporter.cs** - Auto-configuration sprites curseur
+  - isReadable = true (requis pour Cursor.SetCursor)
+  - FilterMode = Point, Compression = None
+  - Menu Tools: "Reconfigure Cursor Sprites"
+- SelectionManager amélioré avec détection hover
+  - `HandleUnitHover()` - Détection unités sous curseur
+  - `HandleDestinationHover()` - Détection destinations valides
+  - Système de priorité: Hover > Move > Default
+
+### Configuration
+- Hover cursor: 6 frames @ 10 FPS (ICON_SELECT_FRIENDLY_00-05)
+- Move cursor: 4 frames @ 10 FPS (ICON_MOVEMENT_COMMAND_00-03)
+- Hotspot configurable (ex: 24,24 pour curseur 48x48)
+
+## Système de sélection visuelle corner brackets (Jan 2025)
+
+### Ajouté
+- **SelectableComponent.cs** - Coordinateur sélection
+  - Subscribe aux events UnitBase.OnSelected/OnDeselected
+  - Support multiple types visuels (enum SelectionVisualType)
+  - Contrôle CornerBracketSelector
+- **CornerBracketSelector.cs** - Affichage brackets passif
+  - 4 child GameObjects avec sprites L rotatés
+  - Méthodes publiques ShowBrackets() / HideBrackets()
+  - Configurable: distance, taille, sorting order
+- **SelectionVisualType.cs** - Enum types visuels
+  - SpriteColor (legacy)
+  - CornerBrackets (défaut)
+- Sprite corner_bracket_l.png (forme L blanche)
+- Rotations corners: TL=0°, TR=-90°, BR=180°, BL=90°
+
+### Design Pattern
+- Séparation: SelectableComponent = logique, CornerBracketSelector = affichage
+- Passive component (contrôlé, ne subscribe pas aux events)
+- Réutilisable sur tous types d'unités
+
+## Commit 10 - Unité Artillery (Jan 2025)
+
+### Ajouté
+- **ArtilleryController.cs** - Contrôleur unité lourde
+- **ArtilleryMovement.cs** - Déplacement lent (speed: 1.5)
+- **ArtilleryContext.cs** - État partagé Artillery
+- **ArtilleryData.cs** + asset - Configuration ScriptableObject
+- **ArtilleryAnimationData.asset** - 8 directions configurées
+- Prefab Artillery.prefab avec tous composants
+- Sprites artillery avec 16 frames animation
+
+### Validé
+- Architecture réutilisable validée avec 2e unité
+- Vitesses différentes (Buggy: 4.0, Artillery: 1.5)
+- Systèmes Common (Vehicle, Selection, Animation) fonctionnels
+
+## Commit 9 - Système de sélection souris (Jan 2025)
+
+### Ajouté
+- **SelectionManager.cs** - Module Gameplay
+  - Sélection clic gauche via raycast 2D
+  - Commande mouvement clic droit
+  - Conversion souris → monde → grille automatique
+  - Validation position cible
+- **CommandAndConquer.Gameplay.asmdef** - Nouveau module
+  - Évite dépendances circulaires Core ↔ Grid
+  - Couche orchestration au-dessus de Grid
+- Feedback visuel sélection dans BuggyController
+  - OnSelected(): sprite teinte verte
+  - OnDeselected(): couleur originale
+
+### Architecture
+- Pattern: Core (base) → Grid (système) → Gameplay (orchestration)
+- Physics2D.GetRayIntersection() pour détection unités
+
+## Commit 8 - Unité Buggy (Jan 2025)
+
+### Ajouté
+- **BuggyController.cs** - Premier contrôleur unité
+  - Hérite UnitBase
+  - Implémente IMovable, ISelectable
+  - FindFirstObjectByType<GridManager>() (Unity 6 API)
+- **BuggyMovement.cs** - Système déplacement case par case
+  - State machine: Idle/Moving/WaitingForNextCell/Blocked
+  - Pathfinding 8 directions (ligne droite)
+  - Interpolation fluide Vector3.MoveTowards()
+  - Système destination en attente (pendingTarget)
+  - Retry mechanism: 0.3s interval, max 20 tentatives
+- **BuggyContext.cs** - État partagé pour composition
+- **BuggyData.cs** + asset - Configuration (speed: 4.0)
+- **BuggyTestMovement.cs** - Tests pavé numérique
+  - Touches 1-9: positions test
+  - Touche 0: retour home (5,5)
+  - Touche H: aide
+- **BuggyMovementDebug.cs** - Visualisation Gizmos
+  - Blanc/Vert/Orange/Rouge: états Idle/Moving/Waiting/Blocked
+  - Gray/Yellow/Cyan cubes: cellules path
+  - Yellow line: chemin actuel
+  - Magenta sphere: destination finale
+- Prefab Buggy.prefab avec BoxCollider2D (trigger)
+- 16 sprites buggy-0000 à buggy-0030 (PPU=128)
+
+### Problèmes résolus
+- Cellules fantômes: système pendingTarget + CancelCurrentMovement()
+- Input System errors: migration vers Keyboard.current
+- Namespace Grid: ajout référence assembly Units.asmdef
+
+## Commit 7 - Système de grille (Jan 2025)
+
+### Ajouté
+- **GridManager.cs** - Gestionnaire grille 20x20
+  - Génération automatique au démarrage
+  - Cell size: 1.0 unité Unity
+  - Conversion Grid ↔ World (+0.5f offset pour centrage)
+  - Système enregistrement unités: RegisterUnit/UnregisterUnit
+  - Réservation atomique: TryMoveUnitTo() (prévient race conditions)
+  - Vérification cohérence LateUpdate() toutes les 60 frames
+  - Debug Gizmos: vert (libre), rouge (occupé)
+- **GridCell.cs** - État cellule individuelle
+  - Propriétés: position, occupied, unit reference
+  - Méthodes: TryOccupy(), Release(), ForceOccupy()
+- **GridPathfinder.cs** - Utilitaire pathfinding statique
+  - CalculateStraightPath() pour 8 directions
+  - Math.Sign() pour calcul deltaX/deltaY
+  - Limite sécurité: 1000 itérations max
+- **TerrainSpriteImporter.cs** - Configuration auto sprites
+  - PPU=128, FilterMode=Point, Compression=None
+  - Menu Tools: "Reconfigure All Terrain Sprites"
+- **Map/TILEMAP_SETUP.md** - Guide configuration Tilemap (10 étapes)
+- **Map/RANDOM_BRUSH_GUIDE.md** - Guide peinture variation aléatoire
+
+### Modifié
+- GridPosition.cs adapté pour 2D (x,y au lieu de x,z)
+- Grid.asmdef référence Core
+
+### Configuration
+- Grid: 20x20 cellules, 1.0 unité/cellule
+- Sprites: PPU=128 (128px = 1.0 unité)
+- Tile Anchor: (0.5, 0.5) pour centrage visuel
 
 ## Commit 6 - Système de caméra RTS
 

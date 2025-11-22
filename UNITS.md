@@ -10,29 +10,72 @@ Chaque unité est organisée dans `Assets/_Project/Units/<TypeUnité>/` avec:
 - `Sprites/`: Graphismes de l'unité
 - `Data/`: ScriptableObject de configuration
 
-## Unités disponibles
+## Unités disponibles ✅
 
-### Infantry
-**Chemin**: `Assets/_Project/Units/Infantry/`
-**Description**: Unité d'infanterie de base
-**Namespace**: `CommandAndConquer.Units.Infantry`
-
-**Fichiers**:
-- Scripts: `InfantryController.cs`, `InfantryMovement.cs`
-- Prefab: `Infantry.prefab`
-- Sprites: `infantry_idle.png`, `infantry_walk.png`
-- Data: `InfantryData.asset`
-
-### TankHeavy
-**Chemin**: `Assets/_Project/Units/TankHeavy/`
-**Description**: Tank lourd avec tourelle rotative
-**Namespace**: `CommandAndConquer.Units.TankHeavy`
+### Buggy 🏎️
+**Chemin**: `Assets/_Project/Units/Buggy/`
+**Description**: Véhicule rapide de reconnaissance
+**Namespace**: `CommandAndConquer.Units.Buggy`
+**Vitesse**: 4.0 (rapide)
 
 **Fichiers**:
-- Scripts: `TankHeavyController.cs`, `TankHeavyTurret.cs`
-- Prefab: `TankHeavy.prefab`
-- Sprites: `tank_heavy_body.png`, `tank_heavy_turret.png`
-- Data: `TankHeavyData.asset`
+- Scripts:
+  - `BuggyController.cs` - Contrôleur principal
+  - `BuggyMovement.cs` - Déplacement case par case (via VehicleMovement)
+  - `BuggyContext.cs` - État partagé
+  - `BuggyTestMovement.cs` - Tests pavé numérique
+  - `BuggyMovementDebug.cs` - Visualisation Gizmos (optionnel)
+- Prefab: `Buggy.prefab` (avec SelectableComponent, CornerBracketSelector, VehicleAnimator)
+- Sprites: `buggy-0000.png` à `buggy-0030.png` (16 sprites, 8 directions × 2 frames)
+- Data:
+  - `BuggyData.asset` - Configuration ScriptableObject
+  - `BuggyAnimationData.asset` - Sprites 8 directions
+
+**Composants utilisés**:
+- `VehicleMovement` (Common) - State machine mouvement
+- `SelectableComponent` (Common) - Feedback sélection
+- `CornerBracketSelector` (Common) - Corner brackets visuels
+- `VehicleAnimator` (Common) - Animation 8 directions
+
+### Artillery 🎯
+**Chemin**: `Assets/_Project/Units/Artillery/`
+**Description**: Véhicule d'artillerie lourde
+**Namespace**: `CommandAndConquer.Units.Artillery`
+**Vitesse**: 1.5 (lent)
+
+**Fichiers**:
+- Scripts:
+  - `ArtilleryController.cs` - Contrôleur principal
+  - `ArtilleryMovement.cs` - Déplacement case par case (via VehicleMovement)
+  - `ArtilleryContext.cs` - État partagé
+- Prefab: `Artillery.prefab` (avec SelectableComponent, CornerBracketSelector, VehicleAnimator)
+- Sprites: `artillery-*.png` (16 sprites, 8 directions)
+- Data:
+  - `ArtilleryData.asset` - Configuration ScriptableObject
+  - `ArtilleryAnimationData.asset` - Sprites 8 directions
+
+**Composants utilisés**:
+- Mêmes composants Common que Buggy
+- Valide l'architecture réutilisable
+
+## Systèmes Common (Partagés)
+
+Les deux unités utilisent les systèmes partagés dans `Units/Common/`:
+
+### Vehicle (`Units/Common/Vehicle/`)
+- `VehicleMovement.cs` - State machine: Idle/Moving/WaitingForNextCell/Blocked
+- `VehicleContext.cs` - État partagé (gridManager, unitBase, waypoints, etc.)
+
+### Selection (`Units/Common/Selection/`)
+- `SelectableComponent.cs` - Coordinateur sélection
+- `CornerBracketSelector.cs` - Affichage corner brackets
+- `SelectionVisualType.cs` - Enum types visuels
+
+### Animation (`Units/Common/Animation/`)
+- `DirectionType.cs` - Enum 8 directions (E, NE, N, NW, W, SW, S, SE)
+- `DirectionUtils.cs` - Conversion vecteur → direction (Atan2)
+- `VehicleAnimationData.cs` - ScriptableObject sprites
+- `VehicleAnimator.cs` - Composant animation passive polling
 
 ## Ajouter une nouvelle unité
 

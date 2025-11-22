@@ -2,6 +2,12 @@
 
 Plan de développement du projet Command and Conquer, un RTS 2D éducatif développé avec Unity 6.
 
+**⚠️ NOTE IMPORTANTE (2025-11-23):** Cette roadmap reflète le plan initial. Le projet a évolué au-delà de ce plan :
+- ✅ **Unités implémentées** : Buggy et Artillery (au lieu de Infantry/TankHeavy)
+- ✅ **Systèmes complétés** : Sélection multi-unités, animations 8 directions, curseurs animés
+- 📍 **État actuel** : Phase 2 complète, prêt pour Phase 3 (fonctionnalités avancées)
+- 📖 **Documentation détaillée** : Voir CLAUDE.md pour l'état technique complet
+
 ---
 
 ## 📊 État actuel
@@ -49,13 +55,17 @@ Assets/_Project/
 
 ---
 
-## 🎯 Phase 2 : Systèmes de base (EN COURS)
+## 🎯 Phase 2 : Systèmes de base (✅ TERMINÉ)
 
-### Objectif Version 1
+### Objectif Version 1 - ✅ ATTEINT
 Créer un prototype jouable avec les fonctionnalités de base :
-- ✅ Caméra déplaçable (WASD/souris)
+- ✅ Caméra déplaçable (WASD/souris + zoom)
 - ✅ Grille logique et tilemap
-- ⏳ Une unité (Infantry) plaçable et déplaçable
+- ✅ Deux unités (Buggy, Artillery) avec mouvement et sélection
+- ✅ Système de sélection multi-unités avec drag box
+- ✅ Animations 8 directions pour véhicules
+- ✅ Curseurs animés (hover + destination)
+- ✅ Système de collision et gestion atomique des cellules
 
 ---
 
@@ -302,16 +312,18 @@ feat: add TankHeavy unit
 
 ---
 
-## 🎯 Version 1.0 - Objectifs atteints
+## 🎯 Version 1.0 - ✅ OBJECTIFS ATTEINTS ET DÉPASSÉS
 
-Après le Commit 10, vous aurez :
+État actuel (2025-11-23) :
 - ✅ Carte avec grille visible et éditable
 - ✅ Caméra déplaçable (WASD/souris + zoom)
-- ✅ Deux types d'unités (Infantry, TankHeavy)
-- ✅ Sélection d'unités (clic gauche)
+- ✅ Deux types d'unités (Buggy, Artillery) avec animations 8 directions
+- ✅ Sélection d'unités (clic gauche + drag box multi-sélection)
 - ✅ Déplacement sur grille (clic droit)
+- ✅ Curseurs animés pour feedback visuel
+- ✅ Système de collision atomique
 
-**= PROTOTYPE JOUABLE** 🎮
+**= PROTOTYPE JOUABLE COMPLET** 🎮✅
 
 ---
 
@@ -416,5 +428,6 @@ Core (base)
 
 ---
 
-**Dernière mise à jour:** Commit 6 - Système de caméra RTS
-**Prochaine étape:** Commit 7 - Système de grille
+**Dernière mise à jour:** 2025-11-23 - Phase 2 complète
+**Prochaine étape:** Phase 3 - Choisir parmi : 3e unité, combat, formations, bâtiments, ou IA
+**Voir aussi:** CLAUDE.md pour les options détaillées de la Phase 3

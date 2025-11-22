@@ -6,12 +6,15 @@ Projet éducatif de recréation d'un RTS classique Command and Conquer en 2D, d�
 
 Explorer les possibilités de développement de jeux avec l'assistance de l'IA pour créer un RTS fonctionnel avec les mécaniques classiques du genre.
 
-## Fonctionnalités - Version 1
+## Fonctionnalités - Version 1 ✅ (Complétée)
 
 - **Carte éditable**: Terrain composé de sprites éditables depuis l'éditeur Unity
-- **Caméra dynamique**: Déplacement avec clavier (WASD/Flèches) ou souris (bords d'écran)
-- **Système d'unités**: Placement et gestion d'unités depuis l'éditeur
-- **Déplacement par grille**: Mouvement des unités basé sur un système de grille
+- **Caméra dynamique**: Déplacement avec clavier (WASD/Flèches) ou souris (bords d'écran) + zoom molette
+- **Système d'unités**: 2 unités jouables (Buggy rapide, Artillery lent) avec animations 8 directions
+- **Déplacement par grille**: Mouvement fluide case par case avec pathfinding 8 directions
+- **Sélection avancée**: Clic simple ou drag-box multi-sélection avec feedback visuel (corner brackets)
+- **Curseurs animés**: Feedback visuel pour hover d'unité et destinations valides
+- **Collision intelligente**: Système atomique de gestion des cellules avec retry automatique
 
 ## Technologies
 
@@ -34,16 +37,18 @@ Assets/_Project/
 │   ├── Prefabs/
 │   └── Materials/
 ├── Units/                   # Toutes les unités (voir UNITS.md)
-│   ├── Infantry/
+│   ├── Common/              # Systèmes partagés (Vehicle, Selection, Animation)
+│   ├── Buggy/               # Véhicule rapide de reconnaissance
 │   │   ├── Scripts/
 │   │   ├── Prefabs/
 │   │   ├── Sprites/
 │   │   └── Data/
-│   └── TankHeavy/
+│   └── Artillery/           # Véhicule lourd d'artillerie
 │       ├── Scripts/
 │       ├── Prefabs/
 │       ├── Sprites/
 │       └── Data/
+├── Gameplay/                # Sélection, curseurs, input
 ├── Map/                     # Terrain et tuiles
 │   ├── Scripts/
 │   ├── Prefabs/
@@ -69,10 +74,14 @@ Assets/_Project/
 ### Namespaces
 ```csharp
 CommandAndConquer.Core
-CommandAndConquer.Units.Infantry
-CommandAndConquer.Units.TankHeavy
+CommandAndConquer.Units.Buggy
+CommandAndConquer.Units.Artillery
+CommandAndConquer.Units.Common.Vehicle
+CommandAndConquer.Units.Common.Selection
+CommandAndConquer.Units.Common.Animation
 CommandAndConquer.Grid
 CommandAndConquer.Camera
+CommandAndConquer.Gameplay
 CommandAndConquer.Map
 ```
 

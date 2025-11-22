@@ -3,8 +3,9 @@
 Documentation de l'implémentation du Buggy - Première unité jouable du projet Command & Conquer.
 
 **Date de création :** 2025-01-17
-**Statut :** Étapes 1-7 complétées (validation terminée) ✅ + Commit 9 (sélection souris) ✅
-**Prochaine étape :** Étape 8 (animations optionnel) OU Commit 10 (deuxième unité)
+**Dernière mise à jour :** 2025-11-23
+**Statut :** ✅ TOUTES ÉTAPES COMPLÉTÉES + Artillery (2e unité) + Animations 8 dir + Multi-selection
+**Phase actuelle :** Buggy 100% fonctionnel - Prêt pour Phase 3 (combat/formations/bâtiments/IA)
 
 ---
 
@@ -415,6 +416,33 @@ Après validation du Buggy (étapes 7-8), reprendre le plan de la ROADMAP :
 
 ---
 
-**Dernière mise à jour :** 2025-01-21
-**Étapes validées :** 1-7 + Commit 9 ✅
-**Prochaine action :** Étape 8 (animations optionnel) OU Commit 10 (deuxième unité)
+## ✅ Statut Final (2025-11-23)
+
+### Toutes les étapes et features COMPLÉTÉES :
+- ✅ Étapes 1-7: Buggy implémenté et validé
+- ✅ Commit 9: Système sélection souris
+- ✅ Étape 8: Animations 8 directions (FAIT)
+- ✅ Commit 10: Unité Artillery (FAIT)
+- ✅ **BONUS**: Corner bracket selection visuelle
+- ✅ **BONUS**: Curseurs animés (hover + destination)
+- ✅ **BONUS**: Multi-sélection avec drag box
+- ✅ **BONUS**: Refactoring vers systèmes Common réutilisables
+
+### Systèmes partagés créés depuis :
+- `VehicleMovement`, `VehicleContext` (Common/Vehicle/)
+- `SelectableComponent`, `CornerBracketSelector` (Common/Selection/)
+- `VehicleAnimator`, `DirectionUtils`, `VehicleAnimationData` (Common/Animation/)
+
+### Prochaine action recommandée :
+Voir **CLAUDE.md** section "Next Steps" pour options Phase 3 :
+- Option A: 3e unité (Tank/Harvester/MCV)
+- Option B: Système de formations
+- Option C: Système de combat
+- Option D: Bâtiments
+- Option E: IA adverse
+
+---
+
+**Dernière mise à jour :** 2025-11-23
+**Étapes validées :** TOUTES ✅ (1-10 + bonus features)
+**Prochaine action :** Choisir direction Phase 3 (voir CLAUDE.md)
