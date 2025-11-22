@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2049993655980775013}
   - component: {fileID: 6225806005099901082}
   - component: {fileID: 9151229657746185570}
+  - component: {fileID: -375112195265863256}
   m_Layer: 0
   m_Name: Artillery
   m_TagString: Untagged
@@ -198,3 +199,17 @@ MonoBehaviour:
   cornerSize: 2
   sortingOrder: 10
   sortingLayerName: Default
+--- !u!114 &-375112195265863256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6733659363229217077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ebe727fcbe23be4f8eb7d07d64697eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.VehicleAnimator
+  animationData: {fileID: 11400000, guid: f43c16655ce214d42937a59a450846f3, type: 2}
+  debugMode: 0
