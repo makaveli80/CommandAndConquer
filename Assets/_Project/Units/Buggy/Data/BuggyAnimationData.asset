@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f263e47790cd6a4a9a79b4001027527, type: 3}
+  m_Name: BuggyAnimationData
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.VehicleAnimationData
+  spriteE: {fileID: -3141516946449816703, guid: 9cb620d9c26148b4b82457672831af96, type: 3}
+  spriteNE: {fileID: 6777699353576717070, guid: f011dd2a89dfa7b4491dc6eb9c2b76fe, type: 3}
+  spriteN: {fileID: 5384014248578985813, guid: 0e65ddc8b4d901d4582b3a3cefe01117, type: 3}
+  spriteNW: {fileID: -1163163882167355830, guid: e7328be37c003b14ea3805611157f923, type: 3}
+  spriteW: {fileID: 5757816021064226067, guid: f1ad8af1848b12f4c9f2a145ac582a49, type: 3}
+  spriteSW: {fileID: 8511070310412059494, guid: db933b3cc5b955244a45d03eea0f1d73, type: 3}
+  spriteS: {fileID: -7896031630955745552, guid: d1fd4422e960cba419e2d3c50ff7f7ea, type: 3}
+  spriteSE: {fileID: -7754984683321064627, guid: 458b78a77a51ca24699e5aead3fda884, type: 3}
+  defaultDirection: 6

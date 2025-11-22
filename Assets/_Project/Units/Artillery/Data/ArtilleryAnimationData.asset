@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f263e47790cd6a4a9a79b4001027527, type: 3}
+  m_Name: ArtilleryAnimationData
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.VehicleAnimationData
+  spriteE: {fileID: -1162854409758278317, guid: 1d88e3b1a8bccf547893fcd8f5aa4099, type: 3}
+  spriteNE: {fileID: -1488297143306657495, guid: f9337f2d9bc08db4d93145373656c1a3, type: 3}
+  spriteN: {fileID: -522212512501246920, guid: 36d7b094677b10f4782aa94964a0d106, type: 3}
+  spriteNW: {fileID: 582074488512095577, guid: c24a21dbe9e3f644892446f8d1e83465, type: 3}
+  spriteW: {fileID: 8554856507029517396, guid: 54c766cef7ede58438cf3230d53d23a0, type: 3}
+  spriteSW: {fileID: 4338077534984339511, guid: d753cb3547edf3d4999c1c4a903f19de, type: 3}
+  spriteS: {fileID: 7618754926767377234, guid: 9f52d1bbd1ea98843b0a9ee4c55f5839, type: 3}
+  spriteSE: {fileID: 8321011333227009587, guid: 252471b307c42b7478a0ff76ea111fff, type: 3}
+  defaultDirection: 6

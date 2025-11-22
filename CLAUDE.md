@@ -27,6 +27,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Hover cursor: 6-frame animation when hovering units
   - Move cursor: 4-frame animation for valid movement destinations
   - Priority system: Hover > Move > Default
+- ✅ **8-direction animation system** (vehicle sprites update based on movement direction)
+  - DirectionType enum: N, NE, E, SE, S, SW, W, NW
+  - DirectionUtils: Angle-based direction calculation
+  - VehicleAnimationData: ScriptableObject sprite storage
+  - VehicleAnimator: Passive polling component
 - ✅ State machine for unit movement (Idle, Moving, WaitingForNextCell, Blocked)
 - ✅ GridPathfinder utility for path calculation (8 directions)
 - ✅ Modular debug visualization system
@@ -63,7 +68,8 @@ CommandAndConquer/
 ├── Units/          # Unit implementations (depends on Core, Grid)
 │   ├── Common/     # Shared vehicle systems
 │   │   ├── Vehicle/     # VehicleMovement, VehicleContext
-│   │   └── Selection/   # SelectableComponent, CornerBracketSelector
+│   │   ├── Selection/   # SelectableComponent, CornerBracketSelector
+│   │   └── Animation/   # VehicleAnimator, DirectionUtils, VehicleAnimationData
 │   ├── Buggy/      # Fast reconnaissance vehicle
 │   └── Artillery/  # Slow heavy artillery
 └── Map/            # Terrain and tilemap
@@ -77,7 +83,10 @@ Core (foundation)
  ├─> Camera (uses config types)
  ├─> Gameplay (uses Core, Grid - SelectionManager, CursorManager)
  ├─> Units (uses UnitBase, IMovable, ISelectable, GridPosition, UnitData)
- │    ├─> Common (shared: VehicleMovement, SelectableComponent, CornerBracketSelector)
+ │    ├─> Common (shared systems)
+ │    │    ├─> Vehicle (VehicleMovement, VehicleContext)
+ │    │    ├─> Selection (SelectableComponent, CornerBracketSelector)
+ │    │    └─> Animation (VehicleAnimator, DirectionUtils, VehicleAnimationData)
  │    ├─> Buggy (uses Common)
  │    └─> Artillery (uses Common)
  └─> Map (uses Grid for alignment)
@@ -423,6 +432,125 @@ private void HandleDestinationHover()    // Detects valid move destinations (onl
 - **Performance**: Textures loaded once in Inspector, only SetCursor() calls in runtime
 - **Extensibility**: Easy to add new cursor types by extending `CursorType` enum
 
+### 7. Animation System (`CommandAndConquer.Units.Common`)
+
+**Purpose**: 8-direction sprite animation system for vehicles based on movement direction
+
+**Key Files**:
+- `Units/Common/Animation/DirectionType.cs` - Enum for 8 cardinal/intercardinal directions
+- `Units/Common/Animation/DirectionUtils.cs` - Static utility for direction calculation
+- `Units/Common/Animation/VehicleAnimationData.cs` - ScriptableObject storing sprites
+- `Units/Common/Animation/VehicleAnimator.cs` - MonoBehaviour component for animation
+
+**Architecture**:
+
+The animation system uses a **passive polling pattern** where `VehicleAnimator` monitors `VehicleMovement` state:
+
+```
+VehicleMovement (state machine)
+    ↓ CurrentTargetWorldPosition property
+VehicleAnimator.Update()
+    ↓ Calculate delta vector
+DirectionUtils.GetDirectionFromDelta()
+    ↓ Angle-based mapping (Atan2)
+DirectionType enum
+    ↓ Index into data
+VehicleAnimationData.GetSpriteForDirection()
+    ↓ Sprite reference
+SpriteRenderer.sprite = newSprite
+```
+
+**DirectionType Enum** (8 directions):
+```csharp
+public enum DirectionType {
+    E = 0,    // East (Right) - 0°
+    NE = 1,   // Northeast - 45°
+    N = 2,    // North (Up) - 90°
+    NW = 3,   // Northwest - 135°
+    W = 4,    // West (Left) - 180°
+    SW = 5,   // Southwest - 225°
+    S = 6,    // South (Down) - 270°
+    SE = 7    // Southeast - 315°
+}
+```
+
+**DirectionUtils** (Static Utility):
+- `GetDirectionFromDelta(Vector2 delta)` - Converts movement vector to DirectionType
+- Uses `Mathf.Atan2()` for angle calculation
+- Maps angles to 8 directions with 45° ranges (e.g., E = 337.5°-22.5°)
+- Returns default direction (South) for zero vectors
+
+**VehicleAnimationData** (ScriptableObject):
+- Stores 8 sprites (one per direction)
+- Configurable default direction for idle state (typically South)
+- Validation to ensure all sprites are assigned
+- Each vehicle type (Buggy, Artillery) has its own instance
+
+**VehicleAnimator** (MonoBehaviour):
+- Passive component attached to vehicle prefabs
+- Monitors `VehicleMovement.IsMoving` and `CurrentTargetWorldPosition` in Update()
+- Calculates current direction from movement vector
+- Updates `SpriteRenderer.sprite` only when direction changes
+- Remembers last direction when idle (maintains facing)
+- Optional debug mode with yellow arrow gizmo
+
+**Configuration Example** (in Inspector):
+```csharp
+[Header("Animation Data")]
+[SerializeField] private VehicleAnimationData animationData;  // BuggyAnimationData asset
+
+[Header("Settings")]
+[SerializeField] private bool debugMode = false;  // Show direction gizmo
+```
+
+**Setup Steps** (see ANIMATION_SETUP.md for details):
+1. Create `VehicleAnimationData` asset for each vehicle type
+2. Assign 8 sprites for each direction (E, NE, N, NW, W, SW, S, SE)
+3. Add `VehicleAnimator` component to vehicle prefab
+4. Assign animation data asset to VehicleAnimator
+5. Test in Play Mode - sprite should update based on movement direction
+
+**Sprite Mapping** (Example for 16-sprite sheet):
+
+Assuming sprites are numbered 0-30 (16 total) clockwise from East:
+- **E (0°)**: Sprite 0
+- **NE (45°)**: Sprite 4
+- **N (90°)**: Sprite 8
+- **NW (135°)**: Sprite 12
+- **W (180°)**: Sprite 16
+- **SW (225°)**: Sprite 20
+- **S (270°)**: Sprite 24
+- **SE (315°)**: Sprite 28
+
+**Key Methods**:
+```csharp
+// DirectionUtils (static utility)
+public static DirectionType GetDirectionFromDelta(Vector2 delta)      // Vector → Direction
+public static DirectionType GetDirectionFromPositions(Vector3 from, Vector3 to)  // Convenience overload
+public static float GetAngleFromDirection(DirectionType direction)   // Direction → Angle (for debug)
+
+// VehicleAnimationData (ScriptableObject)
+public Sprite GetSpriteForDirection(DirectionType direction)         // Get sprite for direction
+public bool AreAllSpritesAssigned()                                  // Validation helper
+
+// VehicleAnimator (MonoBehaviour)
+public void SetDirection(DirectionType direction)                    // Force direction (for init)
+public DirectionType CurrentDirection { get; }                       // Get current direction
+```
+
+**Design Principles**:
+- **Passive Polling**: No event subscriptions, just Update() monitoring (simpler, more performant)
+- **Direction Memory**: Vehicles maintain last movement direction when idle
+- **Reusability**: Same VehicleAnimator works for all vehicles (Buggy, Artillery, etc.)
+- **Performance**: Sprite only updated when direction changes (not every frame)
+- **Configurability**: Artists can swap sprites via ScriptableObject without touching code
+- **Decoupling**: Animation logic separate from movement logic
+
+**Debug Features**:
+- **Debug Mode**: Enable to see yellow arrow gizmo showing current facing direction
+- **Console Logs**: Optional logging of direction changes: `"[VehicleAnimator] Buggy direction changed to NE (45°)"`
+- **Validation**: Warns if sprites are missing in AnimationData asset
+
 ## Code Conventions
 
 ### Naming Conventions
@@ -624,6 +752,7 @@ git log --oneline -5
 - `README.md` - Project overview
 - `ROADMAP.md` - Development plan and next steps
 - `BUGGY_IMPLEMENTATION.md` - Buggy unit implementation details
+- `ANIMATION_SETUP.md` - 8-direction animation system setup guide
 - `CONVENTIONS.md` - Code standards (detailed)
 - `UNITS.md` - Unit catalog
 - `TOOLS.md` - Editor tools documentation
@@ -665,6 +794,6 @@ git log --oneline -5
 
 ---
 
-**Last Updated**: 2025-01-21
-**Current Focus**: Two working vehicle units (Buggy + Artillery) with shared refactored systems
-**Next Milestone**: 3rd unit (Tank/Harvester), animations, or advanced features
+**Last Updated**: 2025-01-22
+**Current Focus**: 8-direction animation system implemented (ready for Unity Editor testing)
+**Next Milestone**: Test animation system in Unity, then 3rd unit (Tank/Harvester) or advanced features
