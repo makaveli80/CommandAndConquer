@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using CommandAndConquer.Core;
@@ -6,7 +7,7 @@ using CommandAndConquer.Grid;
 namespace CommandAndConquer.Gameplay
 {
     /// <summary>
-    /// Gère la sélection des unités et les commandes de mouvement via la souris.
+    /// Gère la sélection des unités (simple et multi-sélection par drag box) et les commandes de mouvement via la souris.
     /// Singleton pour un accès global.
     /// </summary>
     public class SelectionManager : MonoBehaviour
@@ -20,6 +21,10 @@ namespace CommandAndConquer.Gameplay
         [Tooltip("Référence au CursorManager de la scène")]
         private CursorManager cursorManager;
 
+        [SerializeField]
+        [Tooltip("Référence au DragBoxVisual de la scène (optionnel)")]
+        private DragBoxVisual dragBoxVisual;
+
         [Header("Raycast Settings")]
         [SerializeField]
         [Tooltip("Layer utilisé pour les unités (devra être configuré)")]
@@ -29,11 +34,21 @@ namespace CommandAndConquer.Gameplay
         [Tooltip("Distance maximale du raycast")]
         private float raycastDistance = 100f;
 
-        // Unité actuellement sélectionnée
-        private ISelectable currentSelection;
+        [Header("Drag Box Selection")]
+        [SerializeField]
+        [Tooltip("Distance minimale (en pixels) pour considérer un drag (évite sélection accidentelle)")]
+        private float dragThreshold = 5f;
+
+        // Unités actuellement sélectionnées (multi-sélection)
+        private HashSet<ISelectable> currentSelections = new HashSet<ISelectable>();
 
         // Unité actuellement survolée (pour le curseur)
         private ISelectable currentHoveredUnit;
+
+        // État du drag box
+        private bool isDragging = false;
+        private Vector2 dragStartPosition;
+        private Vector2 dragCurrentPosition;
 
         // Camera de la scène
         private Camera mainCamera;
@@ -83,18 +98,69 @@ namespace CommandAndConquer.Gameplay
         {
             if (mouse == null) return;
 
-            // Clic gauche: Sélectionner une unité
+            // === DRAG BOX DETECTION ===
+            // Mouse DOWN: Commencer potentiel drag
             if (mouse.leftButton.wasPressedThisFrame)
             {
-                HandleLeftClick();
+                dragStartPosition = mouse.position.ReadValue();
+                isDragging = false; // Pas encore un drag, juste un clic pour l'instant
             }
 
+            // Mouse HELD: Vérifier si on dépasse le threshold pour commencer le drag
+            if (mouse.leftButton.isPressed && !isDragging)
+            {
+                dragCurrentPosition = mouse.position.ReadValue();
+                float distance = Vector2.Distance(dragStartPosition, dragCurrentPosition);
+
+                if (distance > dragThreshold)
+                {
+                    isDragging = true; // Transition: clic simple → drag box
+                    Debug.Log($"[SelectionManager] Drag box started (distance: {distance:F1}px)");
+                }
+            }
+
+            // Update position pendant le drag
+            if (isDragging)
+            {
+                dragCurrentPosition = mouse.position.ReadValue();
+
+                // Afficher le rectangle visuel du drag box
+                if (dragBoxVisual != null)
+                {
+                    dragBoxVisual.ShowDragBox(dragStartPosition, dragCurrentPosition);
+                }
+            }
+
+            // Mouse UP: Finaliser sélection (drag box ou clic simple)
+            if (mouse.leftButton.wasReleasedThisFrame)
+            {
+                if (isDragging)
+                {
+                    // Drag box terminé
+                    HandleDragBoxSelection();
+                    isDragging = false;
+
+                    // Cacher le rectangle visuel
+                    if (dragBoxVisual != null)
+                    {
+                        dragBoxVisual.HideDragBox();
+                    }
+                }
+                else
+                {
+                    // Clic simple (distance < threshold)
+                    HandleSingleClickSelection();
+                }
+            }
+
+            // === MOVEMENT COMMANDS ===
             // Clic droit: Donner un ordre de mouvement
             if (mouse.rightButton.wasPressedThisFrame)
             {
                 HandleRightClick();
             }
 
+            // === CURSOR FEEDBACK ===
             // Détection de survol pour le curseur (priorité: unité > destination > défaut)
             bool isHoveringUnit = HandleUnitHover();
 
@@ -106,11 +172,11 @@ namespace CommandAndConquer.Gameplay
         }
 
         /// <summary>
-        /// Gère le clic gauche pour sélectionner une unité.
+        /// Gère le clic simple pour sélectionner une unité (distance < threshold).
         /// </summary>
-        private void HandleLeftClick()
+        private void HandleSingleClickSelection()
         {
-            Vector2 mousePosition = mouse.position.ReadValue();
+            Vector2 mousePosition = dragStartPosition; // Utiliser la position initiale du clic
             Ray ray = mainCamera.ScreenPointToRay(mousePosition);
 
             RaycastHit2D hit = Physics2D.GetRayIntersection(ray, raycastDistance, unitLayerMask);
@@ -127,21 +193,70 @@ namespace CommandAndConquer.Gameplay
             }
             else
             {
-                // Clic sur le vide: Désélectionner
+                // Clic sur le vide: Désélectionner tout
                 DeselectCurrentUnit();
             }
         }
 
         /// <summary>
-        /// Gère le clic droit pour donner un ordre de mouvement.
+        /// Gère la sélection par drag box (distance >= threshold).
+        /// Sélectionne toutes les unités dans le rectangle défini par le drag.
+        /// </summary>
+        private void HandleDragBoxSelection()
+        {
+            // Convertir les positions écran en world space
+            Vector3 startWorld = mainCamera.ScreenToWorldPoint(dragStartPosition);
+            Vector3 endWorld = mainCamera.ScreenToWorldPoint(dragCurrentPosition);
+
+            // Calculer les bounds du rectangle (min/max en 2D)
+            Vector2 min = new Vector2(
+                Mathf.Min(startWorld.x, endWorld.x),
+                Mathf.Min(startWorld.y, endWorld.y)
+            );
+            Vector2 max = new Vector2(
+                Mathf.Max(startWorld.x, endWorld.x),
+                Mathf.Max(startWorld.y, endWorld.y)
+            );
+
+            // Trouver toutes les unités dans la zone
+            Collider2D[] hitColliders = Physics2D.OverlapAreaAll(min, max, unitLayerMask);
+
+            // Collecter les unités sélectionnables
+            List<ISelectable> unitsInBox = new List<ISelectable>();
+            foreach (Collider2D collider in hitColliders)
+            {
+                ISelectable selectable = collider.GetComponent<ISelectable>();
+                if (selectable != null)
+                {
+                    unitsInBox.Add(selectable);
+                }
+            }
+
+            // Gérer la sélection (toujours remplacement, pas d'additif sans modificateurs)
+            if (unitsInBox.Count > 0)
+            {
+                // Remplacer la sélection par les unités dans le box
+                ClearSelection();
+                foreach (ISelectable unit in unitsInBox)
+                {
+                    AddToSelection(unit);
+                }
+                Debug.Log($"[SelectionManager] Drag box selected {unitsInBox.Count} unit(s)");
+            }
+            else
+            {
+                // Aucune unité dans le box: désélectionner tout
+                ClearSelection();
+                Debug.Log("[SelectionManager] Drag box selected 0 units (deselecting all)");
+            }
+        }
+
+        /// <summary>
+        /// Gère le clic droit pour donner un ordre de mouvement à toutes les unités sélectionnées.
         /// </summary>
         private void HandleRightClick()
         {
-            if (currentSelection == null) return;
-
-            // Vérifier que l'unité sélectionnée peut bouger
-            IMovable movable = currentSelection as IMovable;
-            if (movable == null) return;
+            if (currentSelections.Count == 0) return;
 
             // Obtenir la position de la souris dans le monde
             Vector2 mousePosition = mouse.position.ReadValue();
@@ -156,8 +271,22 @@ namespace CommandAndConquer.Gameplay
                 // Vérifier que la position est valide
                 if (gridManager.IsValidGridPosition(targetGridPosition))
                 {
-                    movable.MoveTo(targetGridPosition);
-                    Debug.Log($"[SelectionManager] Move command to {targetGridPosition}");
+                    // Déplacer toutes les unités sélectionnées qui peuvent bouger
+                    int movedUnitsCount = 0;
+                    foreach (ISelectable selectable in currentSelections)
+                    {
+                        IMovable movable = selectable as IMovable;
+                        if (movable != null)
+                        {
+                            movable.MoveTo(targetGridPosition);
+                            movedUnitsCount++;
+                        }
+                    }
+
+                    if (movedUnitsCount > 0)
+                    {
+                        Debug.Log($"[SelectionManager] Move command to {targetGridPosition} for {movedUnitsCount} unit(s)");
+                    }
                 }
                 else
                 {
@@ -167,32 +296,19 @@ namespace CommandAndConquer.Gameplay
         }
 
         /// <summary>
-        /// Sélectionne une unité.
+        /// Sélectionne une unité (remplace la sélection actuelle).
         /// </summary>
         private void SelectUnit(ISelectable selectable)
         {
-            // Désélectionner l'unité précédente si elle existe
-            if (currentSelection != null && currentSelection != selectable)
-            {
-                currentSelection.OnDeselected();
-            }
-
-            // Sélectionner la nouvelle unité
-            currentSelection = selectable;
-            currentSelection.OnSelected();
+            SetSelection(selectable);
         }
 
         /// <summary>
-        /// Désélectionne l'unité actuelle.
+        /// Désélectionne toutes les unités.
         /// </summary>
         private void DeselectCurrentUnit()
         {
-            if (currentSelection != null)
-            {
-                currentSelection.OnDeselected();
-                currentSelection = null;
-                Debug.Log("[SelectionManager] Unit deselected");
-            }
+            ClearSelection();
         }
 
         /// <summary>
@@ -237,22 +353,33 @@ namespace CommandAndConquer.Gameplay
 
         /// <summary>
         /// Détecte le survol de destinations valides et met à jour le curseur.
-        /// N'affiche le curseur de mouvement que si une unité est sélectionnée ET la destination est valide.
+        /// N'affiche le curseur de mouvement que si au moins une unité sélectionnée peut bouger ET la destination est valide.
         /// </summary>
         private void HandleDestinationHover()
         {
             if (cursorManager == null || gridManager == null) return;
 
-            // Ne montrer le curseur de destination que si une unité est sélectionnée
-            if (currentSelection == null)
+            // Ne montrer le curseur de destination que si au moins une unité est sélectionnée
+            if (currentSelections.Count == 0)
             {
                 cursorManager.ResetCursor();
                 return;
             }
 
-            // Vérifier que l'unité peut bouger
-            IMovable movable = currentSelection as IMovable;
-            if (movable == null)
+            // Vérifier qu'au moins une unité peut bouger
+            bool hasMovableUnit = false;
+            UnitBase firstMovableUnit = null;
+            foreach (ISelectable selectable in currentSelections)
+            {
+                if (selectable is IMovable)
+                {
+                    hasMovableUnit = true;
+                    firstMovableUnit = selectable as UnitBase;
+                    break;
+                }
+            }
+
+            if (!hasMovableUnit)
             {
                 cursorManager.ResetCursor();
                 return;
@@ -269,10 +396,8 @@ namespace CommandAndConquer.Gameplay
             // Vérifier que la position est valide ET disponible
             if (gridManager.IsValidGridPosition(targetGridPosition))
             {
-                // Obtenir l'unité sélectionnée comme UnitBase pour la vérification de disponibilité
-                UnitBase selectedUnit = currentSelection as UnitBase;
-
-                if (selectedUnit != null && gridManager.IsCellAvailableFor(targetGridPosition, selectedUnit))
+                // Utiliser la première unité movable pour la vérification de disponibilité
+                if (firstMovableUnit != null && gridManager.IsCellAvailableFor(targetGridPosition, firstMovableUnit))
                 {
                     // Destination valide: afficher le curseur de mouvement
                     cursorManager.SetCursor(CursorType.Move);
@@ -293,7 +418,89 @@ namespace CommandAndConquer.Gameplay
         /// <summary>
         /// Obtient l'unité actuellement sélectionnée.
         /// </summary>
-        public ISelectable CurrentSelection => currentSelection;
+        public ISelectable CurrentSelection => currentSelections.Count > 0 ? null : null; // Deprecated - use CurrentSelections
+
+        /// <summary>
+        /// Obtient toutes les unités actuellement sélectionnées.
+        /// </summary>
+        public IReadOnlyCollection<ISelectable> CurrentSelections => currentSelections;
+
+        #region Selection Helper Methods
+
+        /// <summary>
+        /// Ajoute une unité à la sélection.
+        /// </summary>
+        private void AddToSelection(ISelectable selectable)
+        {
+            if (selectable == null) return;
+
+            // Ajouter à la collection (HashSet évite les duplicates automatiquement)
+            if (currentSelections.Add(selectable))
+            {
+                // Déclencher l'événement de sélection
+                selectable.OnSelected();
+                Debug.Log($"[SelectionManager] Unit added to selection: {(selectable as MonoBehaviour)?.name}");
+            }
+        }
+
+        /// <summary>
+        /// Retire une unité de la sélection.
+        /// </summary>
+        private void RemoveFromSelection(ISelectable selectable)
+        {
+            if (selectable == null) return;
+
+            // Retirer de la collection
+            if (currentSelections.Remove(selectable))
+            {
+                // Déclencher l'événement de désélection
+                selectable.OnDeselected();
+                Debug.Log($"[SelectionManager] Unit removed from selection: {(selectable as MonoBehaviour)?.name}");
+            }
+        }
+
+        /// <summary>
+        /// Remplace la sélection entière par une seule unité.
+        /// </summary>
+        private void SetSelection(ISelectable selectable)
+        {
+            if (selectable == null)
+            {
+                ClearSelection();
+                return;
+            }
+
+            // Désélectionner toutes les unités sauf celle-ci
+            ClearSelection();
+
+            // Sélectionner la nouvelle unité
+            AddToSelection(selectable);
+        }
+
+        /// <summary>
+        /// Désélectionne toutes les unités.
+        /// </summary>
+        private void ClearSelection()
+        {
+            // Désélectionner toutes les unités
+            foreach (ISelectable selectable in currentSelections)
+            {
+                selectable.OnDeselected();
+            }
+
+            currentSelections.Clear();
+            Debug.Log("[SelectionManager] All units deselected");
+        }
+
+        /// <summary>
+        /// Vérifie si une unité est actuellement sélectionnée.
+        /// </summary>
+        private bool IsSelected(ISelectable selectable)
+        {
+            return currentSelections.Contains(selectable);
+        }
+
+        #endregion
 
         private void OnDrawGizmos()
         {
