@@ -366,15 +366,16 @@ namespace CommandAndConquer.Gameplay
                 return;
             }
 
+
             // Vérifier qu'au moins une unité peut bouger
             bool hasMovableUnit = false;
-            UnitBase firstMovableUnit = null;
+            MonoBehaviour firstMovableUnit = null;
             foreach (ISelectable selectable in currentSelections)
             {
                 if (selectable is IMovable)
                 {
                     hasMovableUnit = true;
-                    firstMovableUnit = selectable as UnitBase;
+                    firstMovableUnit = selectable as MonoBehaviour;
                     break;
                 }
             }

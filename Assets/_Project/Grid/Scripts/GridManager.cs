@@ -26,7 +26,8 @@ namespace CommandAndConquer.Grid
         private GridCell[,] cells;
 
         // Tracking des unités (position grille connue par GridManager)
-        private Dictionary<UnitBase, GridPosition> unitPositions = new Dictionary<UnitBase, GridPosition>();
+        // Utilise MonoBehaviour pour éviter dépendance cyclique avec Units assembly
+        private Dictionary<MonoBehaviour, GridPosition> unitPositions = new Dictionary<MonoBehaviour, GridPosition>();
 
         public int Width => width;
         public int Height => height;
@@ -156,7 +157,7 @@ namespace CommandAndConquer.Grid
         /// Enregistre une unité sur la grille à une position donnée.
         /// Appelé une seule fois au spawn de l'unité.
         /// </summary>
-        public bool RegisterUnit(UnitBase unit, GridPosition position)
+        public bool RegisterUnit(MonoBehaviour unit, GridPosition position)
         {
             if (!IsValidGridPosition(position))
             {
@@ -179,7 +180,7 @@ namespace CommandAndConquer.Grid
         /// <summary>
         /// Désenregistre une unité de la grille (destruction).
         /// </summary>
-        public void UnregisterUnit(UnitBase unit)
+        public void UnregisterUnit(MonoBehaviour unit)
         {
             if (unitPositions.TryGetValue(unit, out GridPosition position))
             {
@@ -194,7 +195,7 @@ namespace CommandAndConquer.Grid
         /// Vérifie si une cellule est libre (peut être occupée par l'unité demandant).
         /// ATTENTION: Cette méthode ne réserve PAS la cellule. Utiliser TryMoveUnitTo() pour une opération atomique.
         /// </summary>
-        public bool IsCellAvailableFor(GridPosition position, UnitBase requestingUnit)
+        public bool IsCellAvailableFor(GridPosition position, MonoBehaviour requestingUnit)
         {
             if (!IsValidGridPosition(position))
                 return false;
@@ -211,7 +212,7 @@ namespace CommandAndConquer.Grid
         /// Évite les race conditions où plusieurs unités tentent d'occuper la même cellule.
         /// </summary>
         /// <returns>True si le mouvement a réussi, False si la cellule cible est occupée</returns>
-        public bool TryMoveUnitTo(UnitBase unit, GridPosition newPos)
+        public bool TryMoveUnitTo(MonoBehaviour unit, GridPosition newPos)
         {
             if (!IsValidGridPosition(newPos))
             {
@@ -269,7 +270,7 @@ namespace CommandAndConquer.Grid
         /// Récupère la position grille d'une unité selon le GridManager.
         /// Utile pour le debug.
         /// </summary>
-        public GridPosition GetUnitGridPosition(UnitBase unit)
+        public GridPosition GetUnitGridPosition(MonoBehaviour unit)
         {
             if (unitPositions.TryGetValue(unit, out GridPosition position))
                 return position;
@@ -310,7 +311,7 @@ namespace CommandAndConquer.Grid
         /// </summary>
         private void CleanupDestroyedUnits()
         {
-            List<UnitBase> destroyedUnits = new List<UnitBase>();
+            List<MonoBehaviour> destroyedUnits = new List<MonoBehaviour>();
 
             foreach (var kvp in unitPositions)
             {
@@ -341,7 +342,7 @@ namespace CommandAndConquer.Grid
             // Vérification 1: Chaque unité enregistrée occupe-t-elle bien sa cellule?
             foreach (var kvp in unitPositions)
             {
-                UnitBase unit = kvp.Key;
+                MonoBehaviour unit = kvp.Key;
                 GridPosition trackedPos = kvp.Value;
 
                 if (unit == null)
@@ -369,7 +370,7 @@ namespace CommandAndConquer.Grid
                     GridCell cell = cells[x, y];
                     if (cell.IsOccupied)
                     {
-                        UnitBase occupyingUnit = cell.OccupyingUnit;
+                        MonoBehaviour occupyingUnit = cell.OccupyingUnit;
                         if (occupyingUnit == null)
                         {
                             Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) is occupied but unit is null!");

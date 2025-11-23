@@ -1,3 +1,4 @@
+using UnityEngine;
 using CommandAndConquer.Core;
 
 namespace CommandAndConquer.Grid
@@ -5,15 +6,16 @@ namespace CommandAndConquer.Grid
     /// <summary>
     /// Représente une cellule individuelle de la grille.
     /// Chaque cellule peut être occupée par une unité ou libre.
+    /// Utilise MonoBehaviour pour éviter dépendance cyclique avec Units assembly.
     /// </summary>
     public class GridCell
     {
         private GridPosition gridPosition;
-        private UnitBase occupyingUnit;
+        private MonoBehaviour occupyingUnit;
 
         public GridPosition GridPosition => gridPosition;
         public bool IsOccupied => occupyingUnit != null;
-        public UnitBase OccupyingUnit => occupyingUnit;
+        public MonoBehaviour OccupyingUnit => occupyingUnit;
 
         public GridCell(int x, int y)
         {
@@ -26,7 +28,7 @@ namespace CommandAndConquer.Grid
         /// </summary>
         /// <param name="unit">L'unité qui veut occuper la cellule</param>
         /// <returns>True si l'occupation a réussi, false sinon</returns>
-        public bool TryOccupy(UnitBase unit)
+        public bool TryOccupy(MonoBehaviour unit)
         {
             if (IsOccupied)
                 return false;
@@ -46,7 +48,7 @@ namespace CommandAndConquer.Grid
         /// <summary>
         /// Force l'occupation de cette cellule (même si déjà occupée)
         /// </summary>
-        public void ForceOccupy(UnitBase unit)
+        public void ForceOccupy(MonoBehaviour unit)
         {
             occupyingUnit = unit;
         }
