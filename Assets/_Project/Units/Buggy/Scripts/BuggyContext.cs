@@ -1,3 +1,4 @@
+using System;
 using CommandAndConquer.Core;
 using CommandAndConquer.Grid;
 using CommandAndConquer.Units._Project.Units.Common.Vehicle;
@@ -6,9 +7,9 @@ namespace CommandAndConquer.Units.Buggy
 {
     /// <summary>
     /// Contexte partagé entre tous les composants du Buggy.
-    /// Hérite de VehicleContext pour éviter la duplication de code.
-    /// Fournit un typage fort pour BuggyData.
+    /// OBSOLÈTE: Les composants utilisent maintenant GetComponent<Unit>() directement.
     /// </summary>
+    [Obsolete("BuggyContext is obsolete. Components now use GetComponent<Unit>() directly.", false)]
     public class BuggyContext : VehicleContext
     {
         /// <summary>

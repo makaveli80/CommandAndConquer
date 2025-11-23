@@ -1,3 +1,4 @@
+using System;
 using CommandAndConquer.Core;
 using CommandAndConquer.Grid;
 using CommandAndConquer.Units._Project.Units.Common.Vehicle;
@@ -6,9 +7,9 @@ namespace CommandAndConquer.Units.Artillery
 {
     /// <summary>
     /// Contexte partagé entre tous les composants de l'Artillery.
-    /// Hérite de VehicleContext pour éviter la duplication de code.
-    /// Fournit un typage fort pour ArtilleryData.
+    /// OBSOLÈTE: Les composants utilisent maintenant GetComponent<Unit>() directement.
     /// </summary>
+    [Obsolete("ArtilleryContext is obsolete. Components now use GetComponent<Unit>() directly.", false)]
     public class ArtilleryContext : VehicleContext
     {
         /// <summary>

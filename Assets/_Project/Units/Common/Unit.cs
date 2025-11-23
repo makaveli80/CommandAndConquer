@@ -8,9 +8,10 @@ namespace CommandAndConquer.Units.Common
     /// Composant générique pour toutes les unités du jeu.
     /// Centralise les données, événements et l'état de l'unité.
     /// Implémente IMovable et ISelectable en déléguant aux composants appropriés.
-    /// Remplace UnitBase et tous les Controllers spécifiques (BuggyController, ArtilleryController, etc.).
+    /// Remplace tous les Controllers spécifiques (BuggyController, ArtilleryController, etc.).
+    /// Hérite temporairement de UnitBase pour compatibilité avec GridManager (sera refactorisé en Phase 3).
     /// </summary>
-    public class Unit : MonoBehaviour, IMovable, ISelectable
+    public class Unit : UnitBase, IMovable, ISelectable
     {
         #region Configuration
 
@@ -25,26 +26,9 @@ namespace CommandAndConquer.Units.Common
 
         private GridPosition currentGridPosition;
         private GridManager gridManager;
-        private bool isSelected;
 
         // Composants (auto-découverts)
         private IMovementComponent movementComponent;
-
-        #endregion
-
-        #region Events
-
-        /// <summary>
-        /// Événement déclenché quand l'unité est sélectionnée.
-        /// Utilisé par SelectableComponent pour afficher le feedback visuel.
-        /// </summary>
-        public event System.Action OnSelectedEvent;
-
-        /// <summary>
-        /// Événement déclenché quand l'unité est désélectionnée.
-        /// Utilisé par SelectableComponent pour masquer le feedback visuel.
-        /// </summary>
-        public event System.Action OnDeselectedEvent;
 
         #endregion
 
@@ -146,13 +130,9 @@ namespace CommandAndConquer.Units.Common
         /// Appelé quand l'unité est sélectionnée par le joueur.
         /// Déclenche l'événement OnSelectedEvent pour le feedback visuel.
         /// </summary>
-        public void OnSelected()
+        public override void OnSelected()
         {
-            if (isSelected) return;
-
-            isSelected = true;
-            OnSelectedEvent?.Invoke();
-
+            base.OnSelected();
             Debug.Log($"[Unit] '{UnitName}' selected");
         }
 
@@ -160,20 +140,11 @@ namespace CommandAndConquer.Units.Common
         /// Appelé quand l'unité est désélectionnée par le joueur.
         /// Déclenche l'événement OnDeselectedEvent pour retirer le feedback visuel.
         /// </summary>
-        public void OnDeselected()
+        public override void OnDeselected()
         {
-            if (!isSelected) return;
-
-            isSelected = false;
-            OnDeselectedEvent?.Invoke();
-
+            base.OnDeselected();
             Debug.Log($"[Unit] '{UnitName}' deselected");
         }
-
-        /// <summary>
-        /// Indique si l'unité est actuellement sélectionnée.
-        /// </summary>
-        public bool IsSelected => isSelected;
 
         #endregion
 

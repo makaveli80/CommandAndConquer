@@ -57,7 +57,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
             CurrentGridPosition = initialPosition;
 
             // Récupérer le GridManager une seule fois pour tous les composants
-            GridManager = Object.FindFirstObjectByType<GridManager>();
+            GridManager = UnityEngine.Object.FindFirstObjectByType<GridManager>();
 
             if (GridManager == null)
             {
