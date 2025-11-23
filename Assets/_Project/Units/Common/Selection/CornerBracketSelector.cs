@@ -7,7 +7,7 @@ namespace CommandAndConquer.Units.Common
     /// Affiche des encoches en forme de L dans les 4 coins d'une unité sélectionnée.
     /// Les sprites sont créés dynamiquement et positionnés autour de l'unité.
     /// </summary>
-    [RequireComponent(typeof(UnitBase))]
+    [RequireComponent(typeof(Unit))]
     public class CornerBracketSelector : MonoBehaviour
     {
         #region Configuration

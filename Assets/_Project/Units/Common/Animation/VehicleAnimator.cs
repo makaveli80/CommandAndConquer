@@ -1,15 +1,15 @@
 using UnityEngine;
-using CommandAndConquer.Units._Project.Units.Common.Vehicle;
+using CommandAndConquer.Core;
 
 namespace CommandAndConquer.Units.Common
 {
     /// <summary>
     /// Composant réutilisable pour gérer l'animation directionnelle des véhicules.
     /// Met à jour le sprite du véhicule en fonction de sa direction de mouvement.
-    /// Fonctionne avec VehicleMovement pour détecter la direction actuelle.
+    /// Fonctionne avec n'importe quel composant implémentant IMovementComponent
+    /// (VehicleMovement, InfantryMovement, AircraftMovement, etc.).
     /// </summary>
     [RequireComponent(typeof(SpriteRenderer))]
-    [RequireComponent(typeof(VehicleMovement))]
     public class VehicleAnimator : MonoBehaviour
     {
         #region Configuration
@@ -29,7 +29,7 @@ namespace CommandAndConquer.Units.Common
         #region Private Fields
 
         private SpriteRenderer spriteRenderer;
-        private VehicleMovement vehicleMovement;
+        private IMovementComponent movementComponent;
         private DirectionType currentDirection;
         private DirectionType lastMovementDirection;
 
@@ -40,7 +40,7 @@ namespace CommandAndConquer.Units.Common
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
-            vehicleMovement = GetComponent<VehicleMovement>();
+            movementComponent = GetComponent<IMovementComponent>();
 
             if (animationData == null)
             {
@@ -74,17 +74,17 @@ namespace CommandAndConquer.Units.Common
         /// </summary>
         private void UpdateAnimation()
         {
-            if (vehicleMovement == null || animationData == null)
+            if (movementComponent == null || animationData == null)
                 return;
 
             DirectionType newDirection;
 
-            if (vehicleMovement.IsMoving)
+            if (movementComponent.IsMoving)
             {
                 // Calculer la direction depuis la position actuelle vers la cible
                 Vector2 delta = new Vector2(
-                    vehicleMovement.CurrentTargetWorldPosition.x - transform.position.x,
-                    vehicleMovement.CurrentTargetWorldPosition.y - transform.position.y
+                    movementComponent.CurrentTargetWorldPosition.x - transform.position.x,
+                    movementComponent.CurrentTargetWorldPosition.y - transform.position.y
                 );
 
                 // Seulement mettre à jour si le delta est significatif
@@ -167,7 +167,7 @@ namespace CommandAndConquer.Units.Common
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
-            if (!debugMode || vehicleMovement == null || !vehicleMovement.IsMoving)
+            if (!debugMode || movementComponent == null || !movementComponent.IsMoving)
                 return;
 
             // Dessiner une flèche indiquant la direction actuelle

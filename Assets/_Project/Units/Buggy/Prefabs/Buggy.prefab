@@ -10,13 +10,13 @@ GameObject:
   m_Component:
   - component: {fileID: 2039708497405676752}
   - component: {fileID: 7731487324386084198}
-  - component: {fileID: 5463322688986569260}
-  - component: {fileID: 2272295191501695506}
   - component: {fileID: 4983106124782636844}
-  - component: {fileID: 8190634444531752554}
+  - component: {fileID: 8430680471091828599}
+  - component: {fileID: 493648447081119540}
+  - component: {fileID: 3370367332015804247}
   - component: {fileID: 2084930689957345034}
   - component: {fileID: -97023056932080027}
-  - component: {fileID: 3370367332015804247}
+  - component: {fileID: 4750472000449138118}
   m_Layer: 0
   m_Name: Buggy
   m_TagString: Untagged
@@ -97,32 +97,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &5463322688986569260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5701200027075343907}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68d96a2591192994eb3999863db6a5b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyController
-  unitName: Buggy 1
-  buggyData: {fileID: 11400000, guid: fcb4302fb99e2304e84a4a3be5730936, type: 2}
---- !u!114 &2272295191501695506
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5701200027075343907}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59bd2b00b0d93e44381debb9700c5986, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyMovement
 --- !u!61 &4983106124782636844
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -169,7 +143,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &8190634444531752554
+--- !u!114 &8430680471091828599
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -178,9 +152,36 @@ MonoBehaviour:
   m_GameObject: {fileID: 5701200027075343907}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8ed41b84f9621a479cb18f659017a49, type: 3}
+  m_Script: {fileID: 11500000, guid: 635b1345a5545ed4eadb26f6b1579311, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyMovementDebug
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.Unit
+  unitData: {fileID: 11400000, guid: 63c45b2afe205f54682f52ad77cd93ca, type: 2}
+--- !u!114 &493648447081119540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5701200027075343907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5344d19b148323d48a00e18f7daf7b81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units._Project.Units.Common.Vehicle.VehicleMovement
+--- !u!114 &3370367332015804247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5701200027075343907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ebe727fcbe23be4f8eb7d07d64697eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.VehicleAnimator
+  animationData: {fileID: 11400000, guid: ded86f565b15425408ed61462ab0bb9f, type: 2}
+  debugMode: 0
 --- !u!114 &2084930689957345034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,17 +213,19 @@ MonoBehaviour:
   cornerSize: 2
   sortingOrder: 10
   sortingLayerName: Default
---- !u!114 &3370367332015804247
+--- !u!114 &4750472000449138118
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5701200027075343907}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ebe727fcbe23be4f8eb7d07d64697eb, type: 3}
+  m_Script: {fileID: 11500000, guid: 754dc123890dd36479175219f229a5af, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.VehicleAnimator
-  animationData: {fileID: 11400000, guid: ded86f565b15425408ed61462ab0bb9f, type: 2}
-  debugMode: 0
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units._Project.Units.Common.Vehicle.VehicleMovementDebug
+  showStateIndicator: 1
+  showPath: 1
+  showDestination: 1
+  showCurrentTarget: 1

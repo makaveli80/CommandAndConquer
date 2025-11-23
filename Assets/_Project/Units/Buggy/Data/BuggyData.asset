@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c22175da75fa9c94288ce578ac639943, type: 3}
+  m_Script: {fileID: 11500000, guid: 414706f17b0550c4bab8139dd990ae26, type: 3}
   m_Name: BuggyData
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyData
+  m_EditorClassIdentifier: CommandAndConquer.Core::CommandAndConquer.Core.UnitData
   unitName: Buggy
   description: "V\xE9hicule l\xE9ger et rapide de reconnaissance. Id\xE9al pour l'exploration
     et les attaques rapides."

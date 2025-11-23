@@ -46,9 +46,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - All selected units show corner brackets independently
 
 ### Recent Refactorings
-- ✅ **VehicleMovement** - Factorized movement logic (~574 lines eliminated)
-- ✅ **VehicleContext** - Centralized shared state for vehicles
-- ✅ **SelectableComponent** - Reusable selection visual feedback (~50 lines eliminated)
+- ✅ **Component-Based Architecture** (Nov 2025) - Complete refactor to composition over inheritance
+  - Eliminated all Controller classes (BuggyController, ArtilleryController)
+  - Eliminated all Context classes (VehicleContext, BuggyContext, ArtilleryContext)
+  - Eliminated UnitBase abstract class
+  - New units created 100% in Editor (zero code required)
+  - **~600 lines of code eliminated**
+- ✅ **VehicleMovement** - Generic component for all vehicles (no inheritance needed)
+- ✅ **Unit** - Generic component replacing all Controllers
+- ✅ **SelectableComponent** - Reusable selection visual feedback
 - ✅ **CornerBracketSelector** - Professional corner bracket selection visual system
 
 ### Next Steps (Choose Direction)
@@ -73,34 +79,34 @@ This project uses a **modular, component-based architecture** with Assembly Defi
 
 ```
 CommandAndConquer/
-├── Core/           # Base classes, interfaces, shared types (no dependencies)
+├── Core/           # Interfaces, shared types (IMovable, ISelectable, UnitData, GridPosition)
 ├── Grid/           # Grid system (depends on Core)
 ├── Camera/         # RTS camera (minimal dependencies)
 ├── Gameplay/       # Gameplay systems (selection, cursor)
 ├── Units/          # Unit implementations (depends on Core, Grid)
-│   ├── Common/     # Shared vehicle systems
-│   │   ├── Vehicle/     # VehicleMovement, VehicleContext
-│   │   ├── Selection/   # SelectableComponent, CornerBracketSelector
-│   │   └── Animation/   # VehicleAnimator, DirectionUtils, VehicleAnimationData
-│   ├── Buggy/      # Fast reconnaissance vehicle
-│   └── Artillery/  # Slow heavy artillery
+│   ├── Common/     # Generic components (100% reusable)
+│   │   ├── Unit.cs           # Generic unit component (replaces all Controllers)
+│   │   ├── Vehicle/          # VehicleMovement (generic for all vehicles)
+│   │   ├── Selection/        # SelectableComponent, CornerBracketSelector
+│   │   └── Animation/        # VehicleAnimator, DirectionUtils, VehicleAnimationData
+│   ├── Buggy/      # Buggy-specific assets (prefab, sprites, data)
+│   └── Artillery/  # Artillery-specific assets (prefab, sprites, data)
 └── Map/            # Terrain and tilemap
 ```
 
 ### Dependency Graph
 
 ```
-Core (foundation)
+Core (interfaces, types: IMovable, ISelectable, IMovementComponent, UnitData, GridPosition)
  ├─> Grid (uses GridPosition)
  ├─> Camera (uses config types)
  ├─> Gameplay (uses Core, Grid - SelectionManager, CursorManager)
- ├─> Units (uses UnitBase, IMovable, ISelectable, GridPosition, UnitData)
- │    ├─> Common (shared systems)
- │    │    ├─> Vehicle (VehicleMovement, VehicleContext)
- │    │    ├─> Selection (SelectableComponent, CornerBracketSelector)
- │    │    └─> Animation (VehicleAnimator, DirectionUtils, VehicleAnimationData)
- │    ├─> Buggy (uses Common)
- │    └─> Artillery (uses Common)
+ ├─> Units (uses Core + Grid)
+ │    └─> Common (generic components)
+ │         ├─> Unit.cs (uses IMovable, ISelectable, IMovementComponent)
+ │         ├─> VehicleMovement.cs (implements IMovementComponent)
+ │         ├─> SelectableComponent.cs (uses Unit events)
+ │         └─> VehicleAnimator.cs (uses IMovementComponent)
  └─> Map (uses Grid for alignment)
 ```
 
@@ -163,29 +169,34 @@ GridPosition gridPos = new GridPosition(
 
 ### 2. Unit System (`CommandAndConquer.Units`)
 
-**Pattern**: Base class + interfaces + composition
+**Pattern**: 100% Composition (no inheritance)
 
 ```
-UnitBase (abstract)
-    ↓
-BuggyController (implements IMovable, ISelectable)
-    ↓ has component
-BuggyMovement (state machine)
+GameObject "Buggy"
+├── Unit (generic component)
+├── VehicleMovement (generic component)
+├── SelectableComponent (generic component)
+├── VehicleAnimator (generic component)
+└── SpriteRenderer
 ```
 
 **Key Files**:
-- `Core/Scripts/UnitBase.cs` - Abstract base for all units
-- `Core/Scripts/IMovable.cs` - Movement capability
-- `Core/Scripts/ISelectable.cs` - Selection capability
+- `Units/Common/Unit.cs` - Generic unit component (replaces all Controllers)
+- `Units/Common/Vehicle/VehicleMovement.cs` - Generic vehicle movement
+- `Core/Scripts/IMovable.cs` - Movement capability interface
+- `Core/Scripts/ISelectable.cs` - Selection capability interface
+- `Core/Scripts/IMovementComponent.cs` - Movement component interface
 - `Core/Scripts/GridPosition.cs` - Grid coordinate struct
-- `Core/Scripts/UnitData.cs` - ScriptableObject configuration base
+- `Core/Scripts/UnitData.cs` - ScriptableObject configuration (concrete, not abstract)
 
-**Buggy Implementation** (example unit):
-- `Units/Buggy/Scripts/BuggyController.cs` - Unit coordinator
-- `Units/Buggy/Scripts/BuggyMovement.cs` - Movement state machine
-- `Units/Buggy/Scripts/BuggyMovementDebug.cs` - Optional debug visualization
-- `Units/Buggy/Scripts/BuggyTestMovement.cs` - Numpad testing controls
-- `Units/Buggy/Data/BuggyData.cs` - Configuration ScriptableObject
+**Creating a New Unit** (zero code required):
+1. Create UnitData asset: `Create → Command & Conquer → Unit Data`
+2. Create GameObject in scene
+3. Add components: Unit, VehicleMovement, SelectableComponent, VehicleAnimator, SpriteRenderer
+4. Configure UnitData (name, speed, sprites)
+5. Create Prefab → **Done!**
+
+See `MIGRATION_GUIDE_PHASE2.md` and `QUICK_REFERENCE_COMPOSITION.md` for details.
 
 ### 3. Movement System
 
@@ -209,8 +220,9 @@ private void Update() {
 ```
 
 **Movement Flow with Collision Detection**:
-1. `MoveTo(GridPosition)` called on BuggyController
-2. BuggyMovement validates request and calculates path using `GridPathfinder.CalculateStraightPath()`
+1. `MoveTo(GridPosition)` called on Unit component
+2. Unit delegates to VehicleMovement (implements IMovementComponent)
+3. VehicleMovement validates request and calculates path using `GridPathfinder.CalculateStraightPath()`
 3. **Atomic reservation** of first cell with `gridManager.TryMoveUnitTo(unit, firstCell)`:
    - If successful → State = `Moving`, begin physical movement
    - If occupied → State = `WaitingForNextCell`, start retry timer
@@ -846,15 +858,32 @@ Located in `Editor/` folders, accessible via **Tools > Command & Conquer**:
 
 ### Adding a New Unit
 
-Follow this template (see `Units/Buggy/` as reference):
+**NEW (Nov 2025)**: Zero code required! Pure composition in Unity Editor.
 
-1. **Create folder structure**: `Units/YourUnit/{Scripts,Data,Prefabs,Sprites}`
-2. **Create YourUnitData.cs**: Inherit from `UnitData`
-3. **Create YourUnitController.cs**: Inherit from `UnitBase`, implement `IMovable`, `ISelectable`
-4. **Create YourUnitMovement.cs**: State machine for movement logic
-5. **Create prefab**: Add all components and configure references
-6. **Create ScriptableObject asset**: Configuration in Data folder
-7. **Update Assembly Definition**: Add dependencies if needed
+**Workflow** (5 minutes):
+
+1. **Create UnitData asset**:
+   - `Project → Right-click → Create → Command & Conquer → Unit Data`
+   - Name: `TankData`
+   - Configure: name="Tank", moveSpeed=2.5, canMove=true
+
+2. **Create GameObject**:
+   - `Hierarchy → Create Empty → "Tank"`
+
+3. **Add Components**:
+   - Add `Unit` → Assign TankData
+   - Add `VehicleMovement` (auto-discovers Unit)
+   - Add `SelectableComponent` → Visual Type = CornerBrackets
+   - Add `VehicleAnimator` → Assign VehicleAnimationData asset
+   - Add `SpriteRenderer` → Assign sprite
+   - Add `BoxCollider2D` → Size = sprite bounds
+
+4. **Create Prefab**:
+   - Drag GameObject from Hierarchy to `Units/Tank/Prefabs/`
+
+**Done!** No C# code written. See `QUICK_REFERENCE_COMPOSITION.md` for details.
+
+**OLD workflow (deprecated)**: See git history before Nov 2025 refactor.
 
 ### Commit Conventions
 
@@ -969,9 +998,13 @@ git log --oneline -5
 ---
 
 **Last Updated**: 2025-11-23
-**Current Focus**: All core RTS systems operational (movement, selection, multi-selection, animation, cursor feedback)
-**Next Milestone**: Choose expansion path - 3rd unit, combat system, formations, buildings, or AI
+**Current Focus**: **Architecture refactored to 100% composition** - Zero code required for new units!
+**Next Milestone**: Add 3rd unit (Tank/Harvester) using new composition system, then combat or buildings
 **Recent Milestones Completed**:
+- 2025-11-23: **Component-based architecture refactor complete** (Phase 1-3)
+  - ~600 lines of code eliminated
+  - Zero code needed for new units (Editor-only workflow)
+  - Documentation: MIGRATION_GUIDE_PHASE2.md, QUICK_REFERENCE_COMPOSITION.md
 - 2025-11-22: Multi-selection with drag box merged to master
 - 2025-10-22 (approx): 8-direction animation system merged
 - 2025-01-22: Animated cursor system and corner bracket selection merged

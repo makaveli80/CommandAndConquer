@@ -167,10 +167,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2084930689957345034, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
       propertyPath: m_Name
       value: Buggy 01
@@ -178,10 +174,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 582471703}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
 --- !u!1 &203844586
 GameObject:
@@ -8987,45 +8980,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 329089642}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
---- !u!1 &329089641 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-  m_PrefabInstance: {fileID: 329089640}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &329089642
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 329089641}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 883b112d3a8aeb94f8f9c7e0ec432a51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyTestMovement
---- !u!1 &582471696 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-  m_PrefabInstance: {fileID: 164288869}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &582471703
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 582471696}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 883b112d3a8aeb94f8f9c7e0ec432a51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyTestMovement
 --- !u!1 &637882656
 GameObject:
   m_ObjectHideFlags: 0
@@ -9378,28 +9334,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1164628433}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
---- !u!1 &1164628432 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-  m_PrefabInstance: {fileID: 1164628431}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1164628433
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1164628432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 883b112d3a8aeb94f8f9c7e0ec432a51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyTestMovement
 --- !u!1 &1273998833
 GameObject:
   m_ObjectHideFlags: 0
@@ -9513,28 +9449,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1314372844}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
---- !u!1 &1314372843 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-  m_PrefabInstance: {fileID: 1314372842}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1314372844
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1314372843}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 883b112d3a8aeb94f8f9c7e0ec432a51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Buggy.BuggyTestMovement
 --- !u!1 &1439402521
 GameObject:
   m_ObjectHideFlags: 0

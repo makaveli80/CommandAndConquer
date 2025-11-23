@@ -11,11 +11,12 @@ GameObject:
   - component: {fileID: 2431104438808213515}
   - component: {fileID: 913181456167929355}
   - component: {fileID: 9191078862657430493}
-  - component: {fileID: 7892814093044121262}
-  - component: {fileID: 2049993655980775013}
+  - component: {fileID: 3398131295868946842}
+  - component: {fileID: 6982433473898530764}
+  - component: {fileID: -375112195265863256}
   - component: {fileID: 6225806005099901082}
   - component: {fileID: 9151229657746185570}
-  - component: {fileID: -375112195265863256}
+  - component: {fileID: 7088276728295601570}
   m_Layer: 0
   m_Name: Artillery
   m_TagString: Untagged
@@ -142,7 +143,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &7892814093044121262
+--- !u!114 &3398131295868946842
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -151,12 +152,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 6733659363229217077}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7270e17b73187b4e87b29d52cbc54f0, type: 3}
+  m_Script: {fileID: 11500000, guid: 635b1345a5545ed4eadb26f6b1579311, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Artillery.ArtilleryController
-  unitName: Artillery
-  artilleryData: {fileID: 11400000, guid: 587cd1165a51ea34ab77516e78b45dbb, type: 2}
---- !u!114 &2049993655980775013
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.Unit
+  unitData: {fileID: 11400000, guid: 186248c53709ed641915133f44bb04f3, type: 2}
+--- !u!114 &6982433473898530764
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -165,9 +165,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 6733659363229217077}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8bac20b37928d547a215f1921ce2532, type: 3}
+  m_Script: {fileID: 11500000, guid: 5344d19b148323d48a00e18f7daf7b81, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Artillery.ArtilleryMovement
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units._Project.Units.Common.Vehicle.VehicleMovement
+--- !u!114 &-375112195265863256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6733659363229217077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ebe727fcbe23be4f8eb7d07d64697eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.VehicleAnimator
+  animationData: {fileID: 11400000, guid: f43c16655ce214d42937a59a450846f3, type: 2}
+  debugMode: 0
 --- !u!114 &6225806005099901082
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,17 +213,19 @@ MonoBehaviour:
   cornerSize: 2
   sortingOrder: 10
   sortingLayerName: Default
---- !u!114 &-375112195265863256
+--- !u!114 &7088276728295601570
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6733659363229217077}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ebe727fcbe23be4f8eb7d07d64697eb, type: 3}
+  m_Script: {fileID: 11500000, guid: 754dc123890dd36479175219f229a5af, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.VehicleAnimator
-  animationData: {fileID: 11400000, guid: f43c16655ce214d42937a59a450846f3, type: 2}
-  debugMode: 0
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units._Project.Units.Common.Vehicle.VehicleMovementDebug
+  showStateIndicator: 1
+  showPath: 1
+  showDestination: 1
+  showCurrentTarget: 1

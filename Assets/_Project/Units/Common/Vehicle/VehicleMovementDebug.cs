@@ -1,38 +1,62 @@
 using UnityEngine;
 using CommandAndConquer.Core;
 using CommandAndConquer.Grid;
-using CommandAndConquer.Units._Project.Units.Common.Vehicle;
+using CommandAndConquer.Units.Common;
 
-namespace CommandAndConquer.Units.Buggy
+namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
 {
     /// <summary>
-    /// Composant optionnel pour visualiser le déplacement du Buggy avec des Gizmos.
+    /// Composant optionnel pour visualiser le déplacement des véhicules avec des Gizmos.
     /// Peut être désactivé en production sans affecter la logique de mouvement.
+    /// Compatible avec n'importe quelle unité utilisant VehicleMovement (Buggy, Artillery, Tank, etc.).
     /// </summary>
-    [RequireComponent(typeof(BuggyMovement))]
-    public class BuggyMovementDebug : MonoBehaviour
+    [RequireComponent(typeof(Unit))]
+    [RequireComponent(typeof(VehicleMovement))]
+    public class VehicleMovementDebug : MonoBehaviour
     {
-        private BuggyMovement movement;
-        private BuggyController controller;
+        [Header("Debug Settings")]
+        [SerializeField]
+        [Tooltip("Afficher l'indicateur d'état (cercle coloré autour de l'unité)")]
+        private bool showStateIndicator = true;
+
+        [SerializeField]
+        [Tooltip("Afficher le chemin complet (cellules + lignes)")]
+        private bool showPath = true;
+
+        [SerializeField]
+        [Tooltip("Afficher la destination finale (sphère magenta)")]
+        private bool showDestination = true;
+
+        [SerializeField]
+        [Tooltip("Afficher la cible actuelle (sphère jaune + ligne verte)")]
+        private bool showCurrentTarget = true;
+
+        private VehicleMovement movement;
+        private Unit unit;
 
         private void Awake()
         {
-            movement = GetComponent<BuggyMovement>();
-            controller = GetComponent<BuggyController>();
+            movement = GetComponent<VehicleMovement>();
+            unit = GetComponent<Unit>();
         }
 
         private void OnDrawGizmos()
         {
-            if (movement == null || controller?.Context?.GridManager == null)
+            if (movement == null || unit == null || unit.GridManager == null)
                 return;
 
-            DrawStateIndicator();
-            DrawPath();
-            DrawCurrentTarget();
+            if (showStateIndicator)
+                DrawStateIndicator();
+
+            if (showPath)
+                DrawPath();
+
+            if (showCurrentTarget)
+                DrawCurrentTarget();
         }
 
         /// <summary>
-        /// Dessine un cercle autour du Buggy selon son état (blanc/vert/orange/rouge).
+        /// Dessine un cercle autour de l'unité selon son état (blanc/vert/orange/rouge).
         /// </summary>
         private void DrawStateIndicator()
         {
@@ -60,7 +84,9 @@ namespace CommandAndConquer.Units.Buggy
 
             DrawPathCells(path);
             DrawPathLines(path);
-            DrawDestination();
+
+            if (showDestination)
+                DrawDestinationMarker();
         }
 
         /// <summary>
@@ -72,7 +98,7 @@ namespace CommandAndConquer.Units.Buggy
 
             for (int i = 0; i < path.Count; i++)
             {
-                Vector3 cellWorldPos = controller.Context.GridManager.GetWorldPosition(path[i]);
+                Vector3 cellWorldPos = unit.GridManager.GetWorldPosition(path[i]);
 
                 // Couleur selon progression
                 if (i < currentIndex)
@@ -98,7 +124,7 @@ namespace CommandAndConquer.Units.Buggy
 
             for (int i = currentIndex; i < path.Count; i++)
             {
-                Vector3 cellWorldPos = controller.Context.GridManager.GetWorldPosition(path[i]);
+                Vector3 cellWorldPos = unit.GridManager.GetWorldPosition(path[i]);
                 Gizmos.DrawLine(previousPos, cellWorldPos);
                 previousPos = cellWorldPos;
             }
@@ -107,9 +133,9 @@ namespace CommandAndConquer.Units.Buggy
         /// <summary>
         /// Dessine la destination finale en magenta.
         /// </summary>
-        private void DrawDestination()
+        private void DrawDestinationMarker()
         {
-            Vector3 finalDestPos = controller.Context.GridManager.GetWorldPosition(movement.CurrentDestination);
+            Vector3 finalDestPos = unit.GridManager.GetWorldPosition(movement.CurrentDestination);
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(finalDestPos, 0.5f);
         }
