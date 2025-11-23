@@ -1,7 +1,8 @@
 using UnityEngine;
+using CommandAndConquer.Core;
 using CommandAndConquer.Grid;
 
-namespace CommandAndConquer.Core
+namespace CommandAndConquer.Units.Common
 {
     /// <summary>
     /// Composant générique pour toutes les unités du jeu.
