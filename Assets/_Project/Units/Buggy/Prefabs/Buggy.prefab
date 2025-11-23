@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3370367332015804247}
   - component: {fileID: 2084930689957345034}
   - component: {fileID: -97023056932080027}
+  - component: {fileID: 4750472000449138118}
   m_Layer: 0
   m_Name: Buggy
   m_TagString: Untagged
@@ -154,7 +155,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 635b1345a5545ed4eadb26f6b1579311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.Unit
-  unitName: Buggy
   unitData: {fileID: 11400000, guid: 63c45b2afe205f54682f52ad77cd93ca, type: 2}
 --- !u!114 &493648447081119540
 MonoBehaviour:
@@ -213,3 +213,19 @@ MonoBehaviour:
   cornerSize: 2
   sortingOrder: 10
   sortingLayerName: Default
+--- !u!114 &4750472000449138118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5701200027075343907}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 754dc123890dd36479175219f229a5af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units._Project.Units.Common.Vehicle.VehicleMovementDebug
+  showStateIndicator: 1
+  showPath: 1
+  showDestination: 1
+  showCurrentTarget: 1

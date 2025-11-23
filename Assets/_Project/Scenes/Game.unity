@@ -167,10 +167,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2084930689957345034, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
       propertyPath: m_Name
       value: Buggy 01
@@ -8977,10 +8973,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2084930689957345034, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
       propertyPath: m_Name
       value: Buggy 02
@@ -9449,10 +9441,6 @@ PrefabInstance:
     - target: {fileID: 2039708497405676752, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2084930689957345034, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
-      propertyPath: m_Enabled
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5701200027075343907, guid: 1514ac3e24ebc4e4e97dec3d195d6e16, type: 3}
       propertyPath: m_Name

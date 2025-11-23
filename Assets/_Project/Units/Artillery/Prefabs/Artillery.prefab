@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: -375112195265863256}
   - component: {fileID: 6225806005099901082}
   - component: {fileID: 9151229657746185570}
+  - component: {fileID: 7088276728295601570}
   m_Layer: 0
   m_Name: Artillery
   m_TagString: Untagged
@@ -154,7 +155,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 635b1345a5545ed4eadb26f6b1579311, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units.Common.Unit
-  unitName: Artillery
   unitData: {fileID: 11400000, guid: 186248c53709ed641915133f44bb04f3, type: 2}
 --- !u!114 &6982433473898530764
 MonoBehaviour:
@@ -213,3 +213,19 @@ MonoBehaviour:
   cornerSize: 2
   sortingOrder: 10
   sortingLayerName: Default
+--- !u!114 &7088276728295601570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6733659363229217077}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 754dc123890dd36479175219f229a5af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Units::CommandAndConquer.Units._Project.Units.Common.Vehicle.VehicleMovementDebug
+  showStateIndicator: 1
+  showPath: 1
+  showDestination: 1
+  showCurrentTarget: 1
