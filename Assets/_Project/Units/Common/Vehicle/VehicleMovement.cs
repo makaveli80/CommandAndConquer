@@ -17,23 +17,17 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
     }
 
     /// <summary>
-    /// Classe abstraite de base pour le déplacement des véhicules sur la grille case par case.
-    /// Utilise un pathfinding en ligne droite avec déplacement dans les 8 directions.
-    /// Les classes dérivées (BuggyMovement, ArtilleryMovement) n'ont qu'à fournir le contexte.
+    /// Composant de mouvement pour les véhicules terrestres.
+    /// Mouvement case-par-case sur grille avec pathfinding en ligne droite (8 directions).
+    /// Implémente IMovementComponent pour être utilisé par le composant Unit générique.
     /// </summary>
-    public abstract class VehicleMovement : MonoBehaviour
+    [RequireComponent(typeof(Unit))]
+    public class VehicleMovement : MonoBehaviour, IMovementComponent
     {
-        #region Abstract Properties
+        #region Dependencies (Auto-découvertes)
 
-        /// <summary>
-        /// Contexte partagé du véhicule (doit être fourni par la classe dérivée).
-        /// </summary>
-        protected abstract VehicleContext Context { get; }
-
-        /// <summary>
-        /// Nom du type de véhicule pour les logs (ex: "Buggy", "Artillery").
-        /// </summary>
-        protected abstract string UnitTypeName { get; }
+        private Unit unit;
+        private GridManager gridManager;
 
         #endregion
 
@@ -74,6 +68,23 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
         #endregion
 
         #region Unity Lifecycle
+
+        private void Awake()
+        {
+            // Auto-découverte des dépendances
+            unit = GetComponent<Unit>();
+            gridManager = FindFirstObjectByType<GridManager>();
+
+            if (unit == null)
+            {
+                Debug.LogError("[VehicleMovement] Unit component not found!");
+            }
+
+            if (gridManager == null)
+            {
+                Debug.LogError("[VehicleMovement] GridManager not found in scene!");
+            }
+        }
 
         private void Update()
         {
@@ -116,7 +127,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
                 if (!TryCalculatePath(targetCellPosition, targetPosition, out List<GridPosition> newPath))
                 {
                     // Impossible d'atteindre la nouvelle destination - on continue vers l'ancienne
-                    Debug.LogWarning($"[{UnitTypeName}Movement] Cannot change direction to {targetPosition}, continuing to {destination}");
+                    Debug.LogWarning($"[VehicleMovement] Cannot change direction to {targetPosition}, continuing to {destination}");
                     return;
                 }
 
@@ -126,15 +137,15 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
                 movementPath = newPath;
                 currentPathIndex = 0;
 
-                Debug.Log($"[{UnitTypeName}Movement] Direction changed to {targetPosition} ({movementPath.Count} steps)");
+                Debug.Log($"[VehicleMovement] Direction changed to {targetPosition} ({movementPath.Count} steps)");
                 return;
             }
 
             // Calculer le chemin pour un nouveau mouvement
-            if (!TryCalculatePath(Context.CurrentGridPosition, targetPosition, out movementPath))
+            if (!TryCalculatePath(unit.CurrentGridPosition, targetPosition, out movementPath))
             {
                 state = MovementState.Blocked;
-                Debug.LogWarning($"[{UnitTypeName}Movement] No valid path to {targetPosition}");
+                Debug.LogWarning($"[VehicleMovement] No valid path to {targetPosition}");
                 return;
             }
 
@@ -145,7 +156,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
             retryTimer = 0f;
             retryCount = 0;
 
-            Debug.Log($"[{UnitTypeName}Movement] Path calculated to {targetPosition} ({movementPath.Count} steps), waiting for first cell");
+            Debug.Log($"[VehicleMovement] Path calculated to {targetPosition} ({movementPath.Count} steps), waiting for first cell");
         }
 
         #endregion
@@ -165,7 +176,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
             }
             else
             {
-                float moveSpeed = Context.Data != null ? Context.Data.moveSpeed : 1.5f;
+                float moveSpeed = unit.Data != null ? unit.Data.moveSpeed : 1.5f;
                 float step = moveSpeed * Time.deltaTime;
 
                 transform.position = Vector3.MoveTowards(
@@ -193,10 +204,10 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
                 GridPosition nextCell = movementPath[currentPathIndex];
 
                 // Tenter de réserver la cellule atomiquement
-                if (Context.GridManager.TryMoveUnitTo(Context.Unit, nextCell))
+                if (gridManager.TryMoveUnitTo(unit, nextCell))
                 {
                     // Réussi! Démarrer ou reprendre le mouvement
-                    Debug.Log($"[{UnitTypeName}Movement] Cell {nextCell} reserved, starting movement");
+                    Debug.Log($"[VehicleMovement] Cell {nextCell} reserved, starting movement");
                     retryCount = 0;
                     state = MovementState.Moving;
                     StartMovingToNextCell();
@@ -204,7 +215,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
                 else if (retryCount >= MAX_RETRIES)
                 {
                     // Timeout après MAX_RETRIES tentatives
-                    Debug.LogWarning($"[{UnitTypeName}Movement] Gave up waiting for {nextCell} after {MAX_RETRIES} retries");
+                    Debug.LogWarning($"[VehicleMovement] Gave up waiting for {nextCell} after {MAX_RETRIES} retries");
                     state = MovementState.Blocked;
                     retryCount = 0;
                 }
@@ -219,8 +230,8 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
             // Snap à la position exacte
             transform.position = targetWorldPosition;
 
-            // Update via le contexte
-            Context.UpdateGridPosition(targetCellPosition);
+            // Update via le unit component
+            unit.UpdateGridPosition(targetCellPosition);
 
             currentPathIndex++;
 
@@ -229,7 +240,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
                 // Tenter de réserver la PROCHAINE cellule atomiquement
                 GridPosition nextCell = movementPath[currentPathIndex];
 
-                if (Context.GridManager.TryMoveUnitTo(Context.Unit, nextCell))
+                if (gridManager.TryMoveUnitTo(unit, nextCell))
                 {
                     // Cellule réservée! Continuer le mouvement
                     StartMovingToNextCell();
@@ -240,7 +251,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
                     state = MovementState.WaitingForNextCell;
                     retryTimer = 0f;
                     retryCount = 0;
-                    Debug.Log($"[{UnitTypeName}Movement] Cell {nextCell} occupied, waiting...");
+                    Debug.Log($"[VehicleMovement] Cell {nextCell} occupied, waiting...");
                 }
             }
             else
@@ -248,7 +259,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
                 // Arrivé à destination
                 state = MovementState.Idle;
                 movementPath = null;
-                Debug.Log($"[{UnitTypeName}Movement] Reached destination: {destination}");
+                Debug.Log($"[VehicleMovement] Reached destination: {destination}");
             }
         }
 
@@ -265,7 +276,7 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
             }
 
             targetCellPosition = movementPath[currentPathIndex];
-            targetWorldPosition = Context.GridManager.GetWorldPosition(targetCellPosition);
+            targetWorldPosition = gridManager.GetWorldPosition(targetCellPosition);
         }
 
         #endregion
@@ -277,21 +288,21 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
         /// </summary>
         private bool IsValidMoveRequest(GridPosition targetPosition)
         {
-            if (Context?.GridManager == null)
+            if (gridManager == null || unit == null)
             {
-                Debug.LogError($"[{UnitTypeName}Movement] GridManager not found in context!");
+                Debug.LogError($"[VehicleMovement] GridManager or Unit not found!");
                 return false;
             }
 
-            if (targetPosition == Context.CurrentGridPosition)
+            if (targetPosition == unit.CurrentGridPosition)
             {
-                Debug.Log($"[{UnitTypeName}Movement] Already at target position");
+                Debug.Log($"[VehicleMovement] Already at target position");
                 return false;
             }
 
-            if (!Context.GridManager.IsValidGridPosition(targetPosition))
+            if (!gridManager.IsValidGridPosition(targetPosition))
             {
-                Debug.LogWarning($"[{UnitTypeName}Movement] Invalid target position: {targetPosition}");
+                Debug.LogWarning($"[VehicleMovement] Invalid target position: {targetPosition}");
                 return false;
             }
 
@@ -307,11 +318,11 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
         /// <returns>True si le chemin est valide, False sinon</returns>
         private bool TryCalculatePath(GridPosition from, GridPosition to, out List<GridPosition> path)
         {
-            path = GridPathfinder.CalculateStraightPath(Context.GridManager, from, to);
+            path = GridPathfinder.CalculateStraightPath(gridManager, from, to);
 
             if (path == null || path.Count == 0)
             {
-                Debug.LogWarning($"[{UnitTypeName}Movement] No valid path from {from} to {to}");
+                Debug.LogWarning($"[VehicleMovement] No valid path from {from} to {to}");
                 return false;
             }
             return true;

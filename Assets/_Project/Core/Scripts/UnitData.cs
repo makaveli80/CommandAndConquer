@@ -3,9 +3,11 @@ using UnityEngine;
 namespace CommandAndConquer.Core
 {
     /// <summary>
-    /// ScriptableObject de base pour stocker les données des unités.
+    /// ScriptableObject pour stocker les données des unités.
+    /// Maintenant concret (plus abstrait) - permet de créer directement des instances via l'éditeur.
     /// </summary>
-    public abstract class UnitData : ScriptableObject
+    [CreateAssetMenu(fileName = "NewUnitData", menuName = "Command & Conquer/Unit Data", order = 0)]
+    public class UnitData : ScriptableObject
     {
         [Header("Informations de base")]
         [Tooltip("Nom de l'unité")]

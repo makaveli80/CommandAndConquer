@@ -1,10 +1,13 @@
+using System;
 using UnityEngine;
 
 namespace CommandAndConquer.Core
 {
     /// <summary>
     /// Classe de base abstraite pour toutes les unités du jeu.
+    /// OBSOLÈTE: Utilisez le composant Unit (non-abstrait) à la place.
     /// </summary>
+    [Obsolete("UnitBase is obsolete. Use the Unit component instead.", false)]
     public abstract class UnitBase : MonoBehaviour
     {
         [Header("Unit Info")]

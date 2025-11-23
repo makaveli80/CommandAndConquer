@@ -1,3 +1,4 @@
+using System;
 using CommandAndConquer.Core;
 using CommandAndConquer.Grid;
 using UnityEngine;
@@ -6,9 +7,9 @@ namespace CommandAndConquer.Units._Project.Units.Common.Vehicle
 {
     /// <summary>
     /// Contexte partagé entre tous les composants d'un véhicule.
-    /// Centralise les références externes et l'état interne pour éviter la duplication.
-    /// Classe de base pour BuggyContext, ArtilleryContext, etc.
+    /// OBSOLÈTE: Les composants utilisent maintenant GetComponent<Unit>() directement.
     /// </summary>
+    [Obsolete("VehicleContext is obsolete. Components now use GetComponent<Unit>() directly.", false)]
     public class VehicleContext
     {
         #region External References

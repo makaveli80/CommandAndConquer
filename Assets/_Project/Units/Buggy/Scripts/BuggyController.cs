@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using CommandAndConquer.Core;
 using CommandAndConquer.Grid;
@@ -6,9 +7,9 @@ namespace CommandAndConquer.Units.Buggy
 {
     /// <summary>
     /// Contrôleur principal de l'unité Buggy.
-    /// Gère l'initialisation et coordonne les différents composants.
-    /// Note: SelectableComponent gère le feedback visuel de sélection.
+    /// OBSOLÈTE: Utilisez le composant Unit générique à la place.
     /// </summary>
+    [Obsolete("BuggyController is obsolete. Use the generic Unit component instead.", false)]
     public class BuggyController : UnitBase, IMovable, ISelectable
     {
         [Header("Buggy Configuration")]

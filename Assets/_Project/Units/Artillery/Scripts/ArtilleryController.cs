@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using CommandAndConquer.Core;
 using CommandAndConquer.Grid;
@@ -6,9 +7,9 @@ namespace CommandAndConquer.Units.Artillery
 {
     /// <summary>
     /// Contrôleur principal de l'unité Artillery.
-    /// Gère l'initialisation et coordonne les différents composants.
-    /// Note: SelectableComponent gère le feedback visuel de sélection.
+    /// OBSOLÈTE: Utilisez le composant Unit générique à la place.
     /// </summary>
+    [Obsolete("ArtilleryController is obsolete. Use the generic Unit component instead.", false)]
     public class ArtilleryController : UnitBase, IMovable, ISelectable
     {
         [Header("Artillery Configuration")]

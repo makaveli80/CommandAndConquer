@@ -7,7 +7,7 @@ namespace CommandAndConquer.Units.Common
     /// Composant réutilisable pour gérer la sélection visuelle des unités.
     /// Supporte plusieurs types de feedback visuel (couleur ou corner brackets).
     /// </summary>
-    [RequireComponent(typeof(UnitBase))]
+    [RequireComponent(typeof(Unit))]
     public class SelectableComponent : MonoBehaviour
     {
         #region Configuration
@@ -26,7 +26,7 @@ namespace CommandAndConquer.Units.Common
 
         #region Private Fields
 
-        private UnitBase unit;
+        private Unit unit;
         private SpriteRenderer spriteRenderer;
         private Color originalColor;
         private bool isSelected = false;
@@ -40,7 +40,7 @@ namespace CommandAndConquer.Units.Common
 
         private void Awake()
         {
-            unit = GetComponent<UnitBase>();
+            unit = GetComponent<Unit>();
             spriteRenderer = GetComponent<SpriteRenderer>();
 
             if (spriteRenderer != null)
