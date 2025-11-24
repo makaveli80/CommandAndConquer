@@ -14,7 +14,7 @@ Documentation technique pour Claude Code (claude.ai/code).
 ## Current State
 
 **Branch**: `master`
-**Phase**: Core RTS systems complete ✅ | Ready for expansion
+**Phase**: 🏗️ Building & Production System (Phase 1/5)
 
 ### Completed Features
 - ✅ Grid system (20×20, 1.0 unit cells, pathfinding 8 directions)
@@ -35,12 +35,18 @@ Documentation technique pour Claude Code (claude.ai/code).
   - ~600 lines of code eliminated
 - ✅ Generic components: Unit, VehicleMovement, SelectableComponent, VehicleAnimator
 
-### Next Steps
-- **Option A**: Add 3rd unit (Tank/Harvester/MCV)
-- **Option B**: Formation system (multi-unit formations)
-- **Option C**: Combat system (attack, health, damage, death)
-- **Option D**: Building system (construction, production)
-- **Option E**: AI opponents (pathfinding, behaviors)
+### 🏗️ In Progress: Building System (5 Phases)
+- **Phase 1**: Core Building System (multi-cell occupation) 🔨
+- **Phase 2**: Production System (queue + timer)
+- **Phase 3**: Spawn System (unit spawning at exit points)
+- **Phase 4**: Building Placement (ghost preview with validation)
+- **Phase 5**: UI Production Panel (sidebar + buttons + queue display)
+
+**First Building**: Construction Yard (2×2) producing Buggy and Artillery
+**Resources**: None (time-based production only)
+**Placement**: Ghost preview with visual feedback (green=valid, red=invalid)
+
+See [docs/BUILDINGS.md](docs/BUILDINGS.md) for detailed implementation plan.
 
 ## Architecture
 
@@ -55,15 +61,23 @@ CommandAndConquer/
 │   ├── Common/  # Generic components (Unit, VehicleMovement, etc.)
 │   ├── Buggy/   # Buggy-specific assets
 │   └── Artillery/ # Artillery-specific assets
+├── Buildings/   # 🆕 Building system (construction, production)
+│   ├── Common/  # Generic components (Building, ProductionQueue, SpawnPoint)
+│   └── ConstructionYard/ # First building (2×2)
+├── UI/          # 🆕 UI system (production panel, buttons, queue display)
+│   ├── Scripts/
+│   └── Prefabs/
 └── Map/         # Terrain, tilemap
 ```
 
 ### Dependency Graph
 ```
-Core → Grid, Camera, Gameplay, Units, Map
+Core → Grid, Camera, Gameplay, Units, Buildings, Map, UI
 Grid → (no deps)
 Gameplay → Core, Grid
 Units/Common → Core, Grid
+Buildings/Common → Core, Grid
+UI → Buildings
 ```
 
 **Principle**: Pure composition. Units = assembly of components in Unity Editor.
@@ -196,6 +210,66 @@ CursorManager.ResetCursor()
 
 **Setup**: See [docs/ANIMATION.md](docs/ANIMATION.md)
 
+### 8. Building System (`Buildings/`) 🆕
+
+**Pattern**: 100% Composition (like Units)
+```
+GameObject "ConstructionYard"
+├── Building (generic)
+├── ProductionQueue (generic)
+├── SpawnPoint (generic)
+└── SpriteRenderer
+```
+
+**Key Components**:
+```csharp
+// BuildingData.cs - ScriptableObject
+- string buildingName
+- int width, height           // Multi-cell size (2×2, 3×2, etc.)
+- ProductionItem[] canProduce // What this building produces
+- Vector2Int spawnOffset      // Exit point for units
+
+// Building.cs - Component
+- BuildingData data
+- GridPosition[] occupiedCells
+- ProductionQueue productionQueue
+- SpawnPoint spawnPoint
+
+// ProductionQueue.cs - Component
+- Queue<ProductionItem> queue
+- float currentProgress       // 0.0 to 1.0
+- void AddToQueue(ProductionItem)
+- event OnItemCompleted
+
+// ProductionItem.cs - ScriptableObject
+- string itemName
+- float productionTime        // In seconds
+- GameObject prefab
+- bool isBuilding            // Building or unit
+```
+
+**Grid Extensions** (multi-cell):
+```csharp
+// GridManager.cs [NEW METHODS]
+bool CanPlaceBuilding(GridPosition origin, int width, int height)
+bool TryOccupyBuildingCells(Building, GridPosition origin, int w, int h)
+void ReleaseBuildingCells(Building)
+```
+
+**Production Flow**:
+1. User clicks UI button → AddToQueue()
+2. ProductionQueue.Update() advances timer
+3. OnItemCompleted → if unit: SpawnPoint spawns it, if building: placement mode
+4. SpawnPoint verifies cell is free before spawning
+
+**Building Placement**:
+- Ghost preview follows mouse (transparent sprite)
+- Visual feedback: green=valid, red=invalid
+- Left-click confirms, right-click cancels
+- Validates all cells are free before placement
+
+See [docs/BUILDINGS.md](docs/BUILDINGS.md) for detailed documentation.
+
 ---
 
 ## Unity Guidelines
@@ -305,10 +379,11 @@ git log --oneline -5
 ---
 
 **Last Updated**: 2025-11-24
-**Current Focus**: 100% composition architecture - zero code for new units
-**Next Milestone**: 3rd unit (Tank/Harvester) OR combat OR buildings
+**Current Focus**: Building & Production System (Phase 1/5 - Core Building System)
+**Next Milestone**: Construction Yard with production queue for Buggy and Artillery
 
 **Documentation**:
 - [GUIDE.md](GUIDE.md) - Developer guide (architecture, systems, workflows)
 - [CHANGELOG.md](CHANGELOG.md) - Change history
-- [docs/](docs/) - Technical documentation (UNITS, TOOLS, ANIMATION)
+- [docs/BUILDINGS.md](docs/BUILDINGS.md) - 🆕 Building system implementation plan (5 phases)
+- [docs/](docs/) - Technical documentation (UNITS, TOOLS, ANIMATION, BUILDINGS)
