@@ -19,12 +19,6 @@ Chaque unité est organisée dans `Assets/_Project/Units/<TypeUnité>/` avec:
 **Vitesse**: 4.0 (rapide)
 
 **Fichiers**:
-- Scripts:
-  - `BuggyController.cs` - Contrôleur principal
-  - `BuggyMovement.cs` - Déplacement case par case (via VehicleMovement)
-  - `BuggyContext.cs` - État partagé
-  - `BuggyTestMovement.cs` - Tests pavé numérique
-  - `BuggyMovementDebug.cs` - Visualisation Gizmos (optionnel)
 - Prefab: `Buggy.prefab` (avec SelectableComponent, CornerBracketSelector, VehicleAnimator)
 - Sprites: `buggy-0000.png` à `buggy-0030.png` (16 sprites, 8 directions × 2 frames)
 - Data:
@@ -44,10 +38,6 @@ Chaque unité est organisée dans `Assets/_Project/Units/<TypeUnité>/` avec:
 **Vitesse**: 1.5 (lent)
 
 **Fichiers**:
-- Scripts:
-  - `ArtilleryController.cs` - Contrôleur principal
-  - `ArtilleryMovement.cs` - Déplacement case par case (via VehicleMovement)
-  - `ArtilleryContext.cs` - État partagé
 - Prefab: `Artillery.prefab` (avec SelectableComponent, CornerBracketSelector, VehicleAnimator)
 - Sprites: `artillery-*.png` (16 sprites, 8 directions)
 - Data:
@@ -64,7 +54,6 @@ Les deux unités utilisent les systèmes partagés dans `Units/Common/`:
 
 ### Vehicle (`Units/Common/Vehicle/`)
 - `VehicleMovement.cs` - State machine: Idle/Moving/WaitingForNextCell/Blocked
-- `VehicleContext.cs` - État partagé (gridManager, unitBase, waypoints, etc.)
 
 ### Selection (`Units/Common/Selection/`)
 - `SelectableComponent.cs` - Coordinateur sélection

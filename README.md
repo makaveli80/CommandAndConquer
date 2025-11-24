@@ -1,156 +1,100 @@
-# Command and Conquer - RTS Classique 2D
+# Command and Conquer - RTS 2D
 
-Projet éducatif de recréation d'un RTS classique Command and Conquer en 2D, développé avec Unity 6 et assisté de Claude Code.
+Projet éducatif de recréation d'un RTS classique en 2D avec Unity 6 et assistance IA (Claude Code).
 
-## Objectif
+## 🎮 Fonctionnalités actuelles
 
-Explorer les possibilités de développement de jeux avec l'assistance de l'IA pour créer un RTS fonctionnel avec les mécaniques classiques du genre.
+**Version 1.0** - Prototype jouable complet ✅
 
-## Fonctionnalités - Version 1 ✅ (Complétée)
+- ✅ **Grille logique 20×20** - Système de pathfinding 8 directions
+- ✅ **Caméra RTS** - WASD/Edge scrolling + zoom molette
+- ✅ **2 unités jouables** - Buggy (rapide) et Artillery (lent)
+- ✅ **Animations 8 directions** - Sprites directionnels pour véhicules
+- ✅ **Sélection multi-unités** - Clic simple ou drag-box
+- ✅ **Feedback visuel** - Corner brackets + curseurs animés
+- ✅ **Gestion collision** - Système atomique de réservation de cellules
 
-- **Carte éditable**: Terrain composé de sprites éditables depuis l'éditeur Unity
-- **Caméra dynamique**: Déplacement avec clavier (WASD/Flèches) ou souris (bords d'écran) + zoom molette
-- **Système d'unités**: 2 unités jouables (Buggy rapide, Artillery lent) avec animations 8 directions
-- **Déplacement par grille**: Mouvement fluide case par case avec pathfinding 8 directions
-- **Sélection avancée**: Clic simple ou drag-box multi-sélection avec feedback visuel (corner brackets)
-- **Curseurs animés**: Feedback visuel pour hover d'unité et destinations valides
-- **Collision intelligente**: Système atomique de gestion des cellules avec retry automatique
+## 🛠️ Technologies
 
-## Technologies
+- **Moteur** : Unity 6
+- **Pipeline** : Universal Render Pipeline (URP) 2D
+- **Langage** : C# (.NET Standard 2.1)
+- **Input** : New Input System
+- **Packages** : 2D Tilemap, 2D Animation, Aseprite Importer
 
-- **Moteur**: Unity 6
-- **Pipeline**: Universal Render Pipeline (URP) 2D
-- **Packages clés**: 2D Tilemap, 2D Animation, Input System, Aseprite Importer
+## 🚀 Quick Start
 
-## Structure du projet (par fonctionnalité)
+1. **Cloner le projet**
+   ```bash
+   git clone <repository-url>
+   ```
+
+2. **Ouvrir avec Unity 6**
+   - File → Open Project
+   - Sélectionner le dossier du projet
+
+3. **Lancer la scène de jeu**
+   - Ouvrir `Assets/_Project/Scenes/Game.unity`
+   - Appuyer sur Play ▶️
+
+4. **Contrôles**
+   - **Caméra** : WASD/Flèches + souris (bords d'écran) + molette (zoom)
+   - **Sélection** : Clic gauche (simple) ou drag (multi-sélection)
+   - **Mouvement** : Clic droit sur la grille
+
+## 📁 Structure du projet
 
 ```
 Assets/_Project/
-├── Core/                    # Systèmes de base partagés
-│   ├── Scripts/
-│   └── Data/
-├── Camera/                  # Contrôle de la caméra
-│   ├── Scripts/
-│   └── Prefabs/
-├── Grid/                    # Système de grille
-│   ├── Scripts/
-│   ├── Prefabs/
-│   └── Materials/
-├── Units/                   # Toutes les unités (voir UNITS.md)
-│   ├── Common/              # Systèmes partagés (Vehicle, Selection, Animation)
-│   ├── Buggy/               # Véhicule rapide de reconnaissance
-│   │   ├── Scripts/
-│   │   ├── Prefabs/
-│   │   ├── Sprites/
-│   │   └── Data/
-│   └── Artillery/           # Véhicule lourd d'artillerie
-│       ├── Scripts/
-│       ├── Prefabs/
-│       ├── Sprites/
-│       └── Data/
-├── Gameplay/                # Sélection, curseurs, input
-├── Map/                     # Terrain et tuiles
-│   ├── Scripts/
-│   ├── Prefabs/
-│   ├── Sprites/
-│   └── Tilemaps/
-└── Scenes/                  # Scènes du jeu
+├── Core/           # Interfaces et types partagés
+├── Grid/           # Système de grille logique
+├── Camera/         # Contrôleur caméra RTS
+├── Gameplay/       # Sélection, curseurs, input
+├── Units/          # Unités (Buggy, Artillery) + composants communs
+└── Map/            # Terrain et tilemap
 ```
 
-## Conventions de nommage
+**Architecture** : Composition pure (zero héritage). Nouvelles unités créées 100% dans l'éditeur Unity.
 
-### Scripts C#
-- **Classes**: `PascalCase` (ex: `UnitController`, `GridManager`)
-- **Méthodes**: `PascalCase` (ex: `MoveToPosition()`)
-- **Variables privées**: `camelCase` (ex: `currentHealth`)
-- **Constantes**: `UPPER_CASE` (ex: `GRID_SIZE`)
+## 📚 Documentation
 
-### Assets Unity
-- **Prefabs**: `PascalCase` (ex: `TankHeavy`, `TileSand`)
-- **Scènes**: `PascalCase` (ex: `MainMenu`, `GameLevel01`)
-- **Sprites**: `snake_case` (ex: `tank_01`, `tile_grass`)
-- **ScriptableObjects**: `PascalCase` + `Data` (ex: `TankData`)
+| Fichier | Description |
+|---------|-------------|
+| **[GUIDE.md](GUIDE.md)** | Guide développeur complet (architecture, workflows) |
+| **[CLAUDE.md](CLAUDE.md)** | Documentation technique pour Claude Code |
+| **[CHANGELOG.md](CHANGELOG.md)** | Historique des modifications |
+| **[docs/](docs/)** | Documentation technique détaillée |
 
-### Namespaces
-```csharp
-CommandAndConquer.Core
-CommandAndConquer.Units.Buggy
-CommandAndConquer.Units.Artillery
-CommandAndConquer.Units.Common.Vehicle
-CommandAndConquer.Units.Common.Selection
-CommandAndConquer.Units.Common.Animation
-CommandAndConquer.Grid
-CommandAndConquer.Camera
-CommandAndConquer.Gameplay
-CommandAndConquer.Map
-```
+### Documentation technique
 
-## Conventions Git
+- **[docs/UNITS.md](docs/UNITS.md)** - Catalogue des unités
+- **[docs/TOOLS.md](docs/TOOLS.md)** - Outils Editor Unity
+- **[docs/ANIMATION.md](docs/ANIMATION.md)** - Système d'animation 8 directions
 
-### Messages de commit
-Format standard avec préfixe, message concis, et description optionnelle:
-
-```
-<type>: <message concis>
-
-<description détaillée optionnelle>
-```
-
-**Types**:
-- `feat:` - Nouvelle fonctionnalité
-- `fix:` - Correction de bug
-- `docs:` - Documentation uniquement
-- `refactor:` - Refactoring sans changement de fonctionnalité
-- `chore:` - Maintenance, configuration
-- `test:` - Ajout ou modification de tests
-
-**Exemples**:
-```
-feat: add infantry unit movement
-
-Implement grid-based movement for infantry units with pathfinding.
-```
-
-```
-docs: add project structure and conventions
-
-- Create README.md with project overview
-- Add CONVENTIONS.md with coding standards
-- Add UNITS.md with available unit types
-```
-
-## Développement
-
-### Outils Editor Unity
-
-Le projet inclut des outils Editor personnalisés pour automatiser la configuration des assets :
-
-**Sprite Importers** - Configuration automatique des sprites
-- `TerrainSpriteImporter` - Configure les sprites de terrain (PPU=128, FilterMode=Point)
-- `UnitSpriteImporter` - Configure les sprites d'unités (PPU=128, Multiple mode)
-
-**Menus disponibles :**
-- `Tools > Command & Conquer > Reconfigure All Terrain Sprites`
-- `Tools > Command & Conquer > Reconfigure All Unit Sprites`
-- `Tools > Command & Conquer > Reconfigure Buggy Sprites`
-
-📖 **Documentation complète** : Voir [TOOLS.md](TOOLS.md)
-
-### Commandes Claude Code
+## 🔧 Commandes Claude Code
 
 - `/create-unit` - Créer une nouvelle unité avec le template
 - `/test-game` - Lancer la scène de jeu
-- `/gen-commit` - Générer un message de commit basé sur les changements
+- `/gen-commit` - Générer un message de commit
 
-### Documentation du projet
+## 🎯 Prochaines étapes
 
-- [README.md](README.md) - Vue d'ensemble (ce fichier)
-- [ROADMAP.md](ROADMAP.md) - Plan de développement et prochaines étapes
-- [TOOLS.md](TOOLS.md) - Outils Editor et automatisation
-- [CONVENTIONS.md](CONVENTIONS.md) - Standards de code
-- [UNITS.md](UNITS.md) - Catalogue des unités
-- [CHANGELOG.md](CHANGELOG.md) - Historique des changements
+Le projet est **prêt pour expansion**. Options possibles :
 
-## Licence
+- **Option A** : Ajouter 3ème unité (Tank/Harvester/MCV)
+- **Option B** : Système de formations multi-unités
+- **Option C** : Combat (attaque, santé, dégâts, mort)
+- **Option D** : Bâtiments (construction, production)
+- **Option E** : IA basique (pathfinding, comportements)
+
+## 📝 Conventions
+
+- **C#** : PascalCase (classes), camelCase (variables privées), UPPER_CASE (constantes)
+- **Assets** : PascalCase (prefabs/scènes), snake_case (sprites)
+- **Commits** : `type: message` (feat/fix/refactor/docs/chore)
+
+Voir [GUIDE.md](GUIDE.md) pour les conventions détaillées.
+
+## 📄 Licence
 
 Projet éducatif - Usage personnel

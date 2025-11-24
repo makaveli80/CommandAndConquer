@@ -28,7 +28,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - SelectionManager passe de single-selection à multi-selection
 - Commandes de mouvement appliquées à toutes les unités sélectionnées
 
-## Système d'animation 8 directions (Oct 2025)
+## Système d'animation 8 directions (Nov 2025)
 
 ### Ajouté
 - **DirectionType.cs** - Enum pour 8 directions cardinales/intercardinales
@@ -75,7 +75,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Move cursor: 4 frames @ 10 FPS (ICON_MOVEMENT_COMMAND_00-03)
 - Hotspot configurable (ex: 24,24 pour curseur 48x48)
 
-## Système de sélection visuelle corner brackets (Jan 2025)
+## Système de sélection visuelle corner brackets (Nov 2025)
 
 ### Ajouté
 - **SelectableComponent.cs** - Coordinateur sélection
@@ -97,7 +97,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Passive component (contrôlé, ne subscribe pas aux events)
 - Réutilisable sur tous types d'unités
 
-## Commit 10 - Unité Artillery (Jan 2025)
+## Commit 10 - Unité Artillery (Nov 2025)
 
 ### Ajouté
 - **ArtilleryController.cs** - Contrôleur unité lourde
@@ -113,7 +113,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Vitesses différentes (Buggy: 4.0, Artillery: 1.5)
 - Systèmes Common (Vehicle, Selection, Animation) fonctionnels
 
-## Commit 9 - Système de sélection souris (Jan 2025)
+## Commit 9 - Système de sélection souris (Nov 2025)
 
 ### Ajouté
 - **SelectionManager.cs** - Module Gameplay
@@ -132,7 +132,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Pattern: Core (base) → Grid (système) → Gameplay (orchestration)
 - Physics2D.GetRayIntersection() pour détection unités
 
-## Commit 8 - Unité Buggy (Jan 2025)
+## Commit 8 - Unité Buggy (Nov 2025)
 
 ### Ajouté
 - **BuggyController.cs** - Premier contrôleur unité
@@ -164,7 +164,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Input System errors: migration vers Keyboard.current
 - Namespace Grid: ajout référence assembly Units.asmdef
 
-## Commit 7 - Système de grille (Jan 2025)
+## Commit 7 - Système de grille (Nov 2025)
 
 ### Ajouté
 - **GridManager.cs** - Gestionnaire grille 20x20
