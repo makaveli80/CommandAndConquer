@@ -29,6 +29,10 @@ namespace CommandAndConquer.Grid
         // Utilise MonoBehaviour pour éviter dépendance cyclique avec Units assembly
         private Dictionary<MonoBehaviour, GridPosition> unitPositions = new Dictionary<MonoBehaviour, GridPosition>();
 
+        // Tracking des bâtiments (multi-cellules)
+        // Associe chaque bâtiment à la liste de toutes les cellules qu'il occupe
+        private Dictionary<MonoBehaviour, List<GridPosition>> buildingCells = new Dictionary<MonoBehaviour, List<GridPosition>>();
+
         public int Width => width;
         public int Height => height;
 
@@ -288,6 +292,145 @@ namespace CommandAndConquer.Grid
 
         #endregion
 
+        #region Building Support (Multi-cell)
+
+        /// <summary>
+        /// Vérifie si un bâtiment peut être placé à une position donnée.
+        /// Vérifie que toutes les cellules nécessaires (width × height) sont libres et valides.
+        /// </summary>
+        /// <param name="origin">Position d'origine (bas-gauche du bâtiment)</param>
+        /// <param name="width">Largeur en cellules</param>
+        /// <param name="height">Hauteur en cellules</param>
+        /// <returns>True si toutes les cellules sont disponibles</returns>
+        public bool CanPlaceBuilding(GridPosition origin, int width, int height)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    GridPosition pos = new GridPosition(origin.x + x, origin.y + y);
+
+                    if (!IsValidGridPosition(pos) || !IsFree(pos))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tente d'occuper toutes les cellules d'un bâtiment de manière atomique.
+        /// Si une seule cellule ne peut pas être occupée, l'opération entière échoue
+        /// et toutes les cellules déjà occupées sont libérées (rollback).
+        /// </summary>
+        /// <param name="building">Le bâtiment à placer</param>
+        /// <param name="origin">Position d'origine (bas-gauche)</param>
+        /// <param name="width">Largeur en cellules</param>
+        /// <param name="height">Hauteur en cellules</param>
+        /// <returns>True si toutes les cellules ont été occupées avec succès</returns>
+        public bool TryOccupyBuildingCells(MonoBehaviour building, GridPosition origin, int width, int height)
+        {
+            List<GridPosition> cells = new List<GridPosition>();
+
+            // Collecter toutes les cellules nécessaires
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    cells.Add(new GridPosition(origin.x + x, origin.y + y));
+                }
+            }
+
+            // Tenter d'occuper toutes les cellules
+            foreach (GridPosition pos in cells)
+            {
+                if (!IsValidGridPosition(pos))
+                {
+                    // Position invalide - rollback
+                    RollbackBuildingOccupation(building, cells, pos);
+                    Debug.LogWarning($"[GridManager] Cannot place building at {origin} - position {pos} is invalid");
+                    return false;
+                }
+
+                GridCell cell = GetCell(pos);
+                if (!cell.TryOccupy(building))
+                {
+                    // Cellule déjà occupée - rollback
+                    RollbackBuildingOccupation(building, cells, pos);
+                    Debug.LogWarning($"[GridManager] Cannot place building at {origin} - cell {pos} is occupied");
+                    return false;
+                }
+            }
+
+            // Succès - enregistrer toutes les cellules
+            buildingCells[building] = cells;
+
+            // Notifier le bâtiment des cellules occupées
+            // Note: On utilise la réflexion pour éviter une dépendance cyclique avec Buildings assembly
+            var method = building.GetType().GetMethod("SetOccupiedCells");
+            if (method != null)
+            {
+                method.Invoke(building, new object[] { cells });
+            }
+            else
+            {
+                Debug.LogWarning($"[GridManager] SetOccupiedCells method not found on {building.GetType().Name}");
+            }
+
+            Debug.Log($"[GridManager] Building placed at {origin} ({width}×{height}), occupying {cells.Count} cells");
+            return true;
+        }
+
+        /// <summary>
+        /// Libère partiellement les cellules lors d'un rollback (opération échouée).
+        /// </summary>
+        private void RollbackBuildingOccupation(MonoBehaviour building, List<GridPosition> cells, GridPosition failedAt)
+        {
+            foreach (GridPosition pos in cells)
+            {
+                // Arrêter quand on atteint la cellule qui a échoué
+                if (pos == failedAt)
+                    break;
+
+                GridCell cell = GetCell(pos);
+                if (cell != null && cell.OccupyingUnit == building)
+                {
+                    cell.Release();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Libère toutes les cellules occupées par un bâtiment.
+        /// Appelé quand le bâtiment est détruit ou déplacé.
+        /// </summary>
+        /// <param name="building">Le bâtiment dont les cellules doivent être libérées</param>
+        public void ReleaseBuildingCells(MonoBehaviour building)
+        {
+            if (buildingCells.TryGetValue(building, out List<GridPosition> cells))
+            {
+                foreach (GridPosition pos in cells)
+                {
+                    GridCell cell = GetCell(pos);
+                    if (cell != null && cell.OccupyingUnit == building)
+                    {
+                        cell.Release();
+                    }
+                }
+                buildingCells.Remove(building);
+                Debug.Log($"[GridManager] Released {cells.Count} cells for building {building.name}");
+            }
+        }
+
+        /// <summary>
+        /// Récupère le nombre de bâtiments enregistrés.
+        /// </summary>
+        public int GetRegisteredBuildingCount()
+        {
+            return buildingCells.Count;
+        }
+
+        #endregion
+
         #region Grid Coherence Verification (Safety Net)
 
         /// <summary>
@@ -307,10 +450,11 @@ namespace CommandAndConquer.Grid
         }
 
         /// <summary>
-        /// Nettoie automatiquement les unités détruites du tracking.
+        /// Nettoie automatiquement les unités et bâtiments détruits du tracking.
         /// </summary>
         private void CleanupDestroyedUnits()
         {
+            // Nettoyer les unités détruites
             List<MonoBehaviour> destroyedUnits = new List<MonoBehaviour>();
 
             foreach (var kvp in unitPositions)
@@ -331,10 +475,35 @@ namespace CommandAndConquer.Grid
                     Debug.LogWarning($"[GridManager] Auto-cleaned destroyed unit at {pos}");
                 }
             }
+
+            // Nettoyer les bâtiments détruits
+            List<MonoBehaviour> destroyedBuildings = new List<MonoBehaviour>();
+
+            foreach (var kvp in buildingCells)
+            {
+                if (kvp.Key == null)
+                {
+                    destroyedBuildings.Add(kvp.Key);
+                }
+            }
+
+            foreach (var building in destroyedBuildings)
+            {
+                if (buildingCells.TryGetValue(building, out List<GridPosition> cells))
+                {
+                    foreach (GridPosition pos in cells)
+                    {
+                        GridCell cell = GetCell(pos);
+                        cell?.Release();
+                    }
+                    buildingCells.Remove(building);
+                    Debug.LogWarning($"[GridManager] Auto-cleaned destroyed building ({cells.Count} cells)");
+                }
+            }
         }
 
         /// <summary>
-        /// Vérifie la cohérence entre le tracking des unités et l'état de la grille.
+        /// Vérifie la cohérence entre le tracking des unités/bâtiments et l'état de la grille.
         /// Log des warnings si des incohérences sont détectées.
         /// </summary>
         private void VerifyGridCoherence()
@@ -362,7 +531,33 @@ namespace CommandAndConquer.Grid
                 }
             }
 
-            // Vérification 2: Chaque cellule occupée correspond-elle à une unité enregistrée?
+            // Vérification 1b: Chaque bâtiment enregistré occupe-t-il bien ses cellules?
+            foreach (var kvp in buildingCells)
+            {
+                MonoBehaviour building = kvp.Key;
+                List<GridPosition> cells = kvp.Value;
+
+                if (building == null)
+                    continue;
+
+                foreach (GridPosition pos in cells)
+                {
+                    GridCell cell = GetCell(pos);
+                    if (cell != null)
+                    {
+                        if (!cell.IsOccupied)
+                        {
+                            Debug.LogError($"[GridManager] COHERENCE ERROR: Building {building.name} should occupy {pos} but cell is not occupied!");
+                        }
+                        else if (cell.OccupyingUnit != building)
+                        {
+                            Debug.LogError($"[GridManager] COHERENCE ERROR: Building {building.name} should occupy {pos} but cell is occupied by {cell.OccupyingUnit?.name}!");
+                        }
+                    }
+                }
+            }
+
+            // Vérification 2: Chaque cellule occupée correspond-elle à une unité ou un bâtiment enregistré?
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -373,16 +568,42 @@ namespace CommandAndConquer.Grid
                         MonoBehaviour occupyingUnit = cell.OccupyingUnit;
                         if (occupyingUnit == null)
                         {
-                            Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) is occupied but unit is null!");
+                            Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) is occupied but occupier is null!");
                             cell.Release(); // Auto-correction
                         }
-                        else if (!unitPositions.ContainsKey(occupyingUnit))
+                        else
                         {
-                            Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) occupied by {occupyingUnit.name} but unit is not registered!");
-                        }
-                        else if (unitPositions[occupyingUnit] != new GridPosition(x, y))
-                        {
-                            Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) occupied by {occupyingUnit.name} but unit is tracked at {unitPositions[occupyingUnit]}!");
+                            // Vérifier si c'est une unité ou un bâtiment
+                            bool isRegisteredUnit = unitPositions.ContainsKey(occupyingUnit);
+                            bool isRegisteredBuilding = buildingCells.ContainsKey(occupyingUnit);
+
+                            if (!isRegisteredUnit && !isRegisteredBuilding)
+                            {
+                                Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) occupied by {occupyingUnit.name} but not registered as unit or building!");
+                            }
+                            else if (isRegisteredUnit)
+                            {
+                                // Vérification unité
+                                if (unitPositions[occupyingUnit] != new GridPosition(x, y))
+                                {
+                                    Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) occupied by unit {occupyingUnit.name} but unit is tracked at {unitPositions[occupyingUnit]}!");
+                                }
+                            }
+                            else if (isRegisteredBuilding)
+                            {
+                                // Vérification bâtiment
+                                GridPosition cellPos = new GridPosition(x, y);
+                                List<GridPosition> buildingCellsList = buildingCells[occupyingUnit];
+
+                                if (buildingCellsList == null)
+                                {
+                                    Debug.LogError($"[GridManager] COHERENCE ERROR: Building {occupyingUnit.name} registered but cell list is null!");
+                                }
+                                else if (!buildingCellsList.Contains(cellPos))
+                                {
+                                    Debug.LogError($"[GridManager] COHERENCE ERROR: Cell ({x},{y}) occupied by building {occupyingUnit.name} but not in building's cell list!");
+                                }
+                            }
                         }
                     }
                 }

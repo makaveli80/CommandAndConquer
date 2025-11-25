@@ -411,18 +411,43 @@ private Dictionary<MonoBehaviour, List<GridPosition>> buildingCells = new Dictio
 - [x] Créer le plan d'implémentation
 - [x] Documenter dans BUILDINGS.md
 
-### 🔨 Phase 1 : Core Building System
+### ✅ Phase 1 : Core Building System (COMPLÈTE)
 **Objectif** : Bâtiments fonctionnels sur la grille
 
-1. Créer `BuildingData.cs` ScriptableObject
-2. Créer `Building.cs` composant générique
-3. Étendre `GridManager.cs` pour support multi-cellule
-   - `CanPlaceBuilding()`
-   - `TryOccupyBuildingCells()`
-   - `ReleaseBuildingCells()`
-4. Créer asset `ConstructionYardData`
-5. Créer prefab `ConstructionYard` (2×2)
-6. **Test** : Placer manuellement un Construction Yard dans la scène
+**Architecture & Code** :
+- [x] Créer `BuildingData.cs` ScriptableObject
+- [x] Créer `Building.cs` composant générique (ultra-simplifié avec Pivot Bottom Left)
+- [x] Étendre `GridManager.cs` pour support multi-cellule
+   - [x] `CanPlaceBuilding(GridPosition origin, int width, int height)`
+   - [x] `TryOccupyBuildingCells(MonoBehaviour, GridPosition, int, int)` avec rollback atomique
+   - [x] `ReleaseBuildingCells(MonoBehaviour)`
+- [x] Corriger `VerifyGridCoherence()` pour supporter les bâtiments
+- [x] Corriger `CleanupDestroyedUnits()` pour nettoyer aussi les bâtiments
+
+**Bâtiment Airstrip (4×2)** :
+- [x] Créer `BuildingDataCreator.cs` (Menu Editor)
+- [x] Créer asset `AirstripData` (4×2)
+- [x] Créer prefab `Airstrip` avec composants génériques
+- [x] Implémenter Gizmos de debug (cellules bleus, centre jaune, origine verte)
+
+**⚠️ Convention Pivot Bottom Left** :
+- [x] Refactoriser pour utiliser **Pivot Bottom Left (0,0)** sur tous les sprites de bâtiments
+- [x] Simplifier `Building.Initialize()` : `originPosition = GetGridPosition(position)` directement
+- [x] Créer `BuildingSpriteImporter.cs` pour configuration automatique à l'import
+- [x] Ajouter menus Tools pour reconfigurer sprites existants
+
+**Documentation & Tooling** :
+- [x] Documenter convention Pivot Bottom Left dans README.md et CLAUDE.md
+- [x] Créer `Buildings/Airstrip/README.md` avec guide complet
+- [x] Implémenter BuildingSpriteImporter avec AssetPostprocessor
+
+**Tests** :
+- [x] Airstrip occupe correctement 8 cellules (4×2)
+- [x] Sprites alignés parfaitement avec les cellules
+- [x] Position éditeur = position jeu (WYSIWYG)
+- [x] GridManager détecte collisions multi-cellules
+- [x] Vérification de cohérence fonctionne pour bâtiments
+- [x] Cleanup automatique des bâtiments détruits
 
 ### 🔨 Phase 2 : Production System
 **Objectif** : File d'attente avec timer fonctionnelle
@@ -499,18 +524,46 @@ private Dictionary<MonoBehaviour, List<GridPosition>> buildingCells = new Dictio
 
 ## Notes Techniques
 
+### ⚠️ CRITICAL - Sprite Pivot Convention
+
+**Tous les sprites de bâtiments DOIVENT avoir Pivot = Bottom Left (0, 0)**
+
+**Pourquoi Bottom Left ?** :
+- `transform.position` = coin bas-gauche = origine du bâtiment directement
+- Ultra-simple : Position (5,9) → occupe cellules (5,9) à (width-1, height-1)
+- WYSIWYG parfait : Position éditeur = position jeu
+- Code minimal : `originPosition = gridManager.GetGridPosition(transform.position)`
+
+**Configuration automatique** :
+- Les nouveaux sprites dans `Buildings/*/Sprites/` sont auto-configurés par `BuildingSpriteImporter.cs`
+- Menu manuel : `Tools > Command & Conquer > Reconfigure All Building Sprites`
+
+**Comparaison Pivot Center vs Bottom Left** :
+
+| Pivot Center (0.5, 0.5) | Pivot Bottom Left (0, 0) ✅ |
+|-------------------------|---------------------------|
+| Position = centre | Position = origine |
+| Calcul complexe requis | Position directe |
+| Bon pour rotation | Bon pour grille RTS |
+| Code : 6 lignes | Code : 1 ligne |
+
 ### Coordinate System
 
-**Convention Grid → World (bâtiments multi-cellules)** :
+**Convention Grid → World avec Pivot Bottom Left** :
 ```csharp
-// Pour un bâtiment 2×2 à l'origine (5,5) :
-// Cellules occupées : (5,5), (6,5), (5,6), (6,6)
+// Pour un Airstrip 4×2 placé à position (5, 9) :
 
-// Position world de l'origine :
-Vector3 worldPos = new Vector3(5.5f, 5.5f, 0); // Toujours +0.5f
+// Position GameObject = origine directement (grâce au Pivot Bottom Left)
+transform.position = new Vector3(5f, 9f, 0);
 
-// Centre visuel du bâtiment 2×2 :
-Vector3 center = new Vector3(6.0f, 6.0f, 0); // (origin + size/2)
+// Cellules occupées calculées depuis l'origine :
+// (5,9), (6,9), (7,9), (8,9), (5,10), (6,10), (7,10), (8,10)
+
+// Origine sur la grille :
+GridPosition origin = gridManager.GetGridPosition(transform.position); // (5, 9)
+
+// Centre visuel du bâtiment (pour Gizmos) :
+Vector3 center = new Vector3(origin.x + width/2f, origin.y + height/2f, 0); // (7, 10)
 ```
 
 ### Spawn Point Offset
@@ -552,6 +605,14 @@ Après Phase 5, extensions possibles :
 
 ---
 
-**Dernière mise à jour** : 2025-11-24
-**Phase actuelle** : Phase 0 (Planification) ✅
-**Prochaine étape** : Phase 1 - Core Building System
+**Dernière mise à jour** : 2025-11-25
+**Phase actuelle** : Phase 1 (Core Building System) ✅ **COMPLÈTE**
+**Prochaine étape** : Phase 2 - Production System
+
+**Changelog Phase 1** :
+- ✅ Architecture complète avec support multi-cellule
+- ✅ Convention Pivot Bottom Left implémentée
+- ✅ BuildingSpriteImporter pour automation
+- ✅ Airstrip 4×2 fonctionnel avec Gizmos de debug
+- ✅ Documentation complète (BUILDINGS.md, README.md, CLAUDE.md)
+- ✅ Tous les bugs corrigés (cohérence, cleanup, alignement)

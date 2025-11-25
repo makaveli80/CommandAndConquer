@@ -14,7 +14,7 @@ Documentation technique pour Claude Code (claude.ai/code).
 ## Current State
 
 **Branch**: `master`
-**Phase**: 🏗️ Building & Production System (Phase 1/5)
+**Phase**: 🏭 Building & Production System (Phase 2/5)
 
 ### Completed Features
 - ✅ Grid system (20×20, 1.0 unit cells, pathfinding 8 directions)
@@ -27,6 +27,7 @@ Documentation technique pour Claude Code (claude.ai/code).
 - ✅ State machine movement (Idle, Moving, WaitingForNextCell, Blocked)
 - ✅ Atomic cell reservation (prevents race conditions)
 - ✅ Collision detection with retry mechanism
+- ✅ **Building System Phase 1** - Multi-cell buildings on grid (Airstrip 4×2)
 
 ### Architecture
 - ✅ **Component-Based** (Nov 2025) - 100% composition, zero inheritance
@@ -34,17 +35,18 @@ Documentation technique pour Claude Code (claude.ai/code).
   - New units created 100% in Unity Editor (zero code)
   - ~600 lines of code eliminated
 - ✅ Generic components: Unit, VehicleMovement, SelectableComponent, VehicleAnimator
+- ✅ **Building components**: Building, BuildingData (Phase 2: ProductionQueue, SpawnPoint)
 
-### 🏗️ In Progress: Building System (5 Phases)
-- **Phase 1**: Core Building System (multi-cell occupation) 🔨
-- **Phase 2**: Production System (queue + timer)
+### 🏗️ Building System (5 Phases)
+- ✅ **Phase 1**: Core Building System - Multi-cell occupation, Pivot Bottom Left, Airstrip 4×2
+- 🔨 **Phase 2**: Production System (queue + timer) ← **EN COURS**
 - **Phase 3**: Spawn System (unit spawning at exit points)
 - **Phase 4**: Building Placement (ghost preview with validation)
 - **Phase 5**: UI Production Panel (sidebar + buttons + queue display)
 
-**First Building**: Construction Yard (2×2) producing Buggy and Artillery
+**First Building**: Airstrip (4×2) - Will produce Buggy and Artillery
 **Resources**: None (time-based production only)
-**Placement**: Ghost preview with visual feedback (green=valid, red=invalid)
+**Convention**: Sprites with **Pivot Bottom Left (0,0)** for perfect grid alignment
 
 See [docs/BUILDINGS.md](docs/BUILDINGS.md) for detailed implementation plan.
 
@@ -214,12 +216,17 @@ CursorManager.ResetCursor()
 
 **Pattern**: 100% Composition (like Units)
 ```
-GameObject "ConstructionYard"
+GameObject "Airstrip"
 ├── Building (generic)
 ├── ProductionQueue (generic)
 ├── SpawnPoint (generic)
 └── SpriteRenderer
 ```
+
+**⚠️ CRITICAL - Sprite Pivot Convention**:
+- Building sprites MUST have **Pivot: Bottom Left (0, 0)**
+- This makes `transform.position` = origin (coin bas-gauche) directly
+- Ultra-simple positioning: Place at (5,9) → occupies cells (5,9) to (width-1, height-1)
 
 **Key Components**:
 ```csharp
@@ -378,12 +385,21 @@ git log --oneline -5
 
 ---
 
-**Last Updated**: 2025-11-24
-**Current Focus**: Building & Production System (Phase 1/5 - Core Building System)
-**Next Milestone**: Construction Yard with production queue for Buggy and Artillery
+**Last Updated**: 2025-11-25
+**Current Focus**: Building & Production System (Phase 2/5 - Production System)
+**Phase 1 Status**: ✅ **COMPLETE** - Airstrip 4×2 functional with Pivot Bottom Left convention
+**Next Milestone**: ProductionQueue with timer for Buggy and Artillery production
+
+**Recent Achievements (Phase 1)** :
+- ✅ Multi-cell building system with atomic occupation
+- ✅ Pivot Bottom Left convention for perfect grid alignment
+- ✅ BuildingSpriteImporter for automatic sprite configuration
+- ✅ Airstrip 4×2 with debug Gizmos (blue cells, yellow center, green origin)
+- ✅ GridManager coherence verification extended to buildings
 
 **Documentation**:
 - [GUIDE.md](GUIDE.md) - Developer guide (architecture, systems, workflows)
 - [CHANGELOG.md](CHANGELOG.md) - Change history
-- [docs/BUILDINGS.md](docs/BUILDINGS.md) - 🆕 Building system implementation plan (5 phases)
+- [docs/BUILDINGS.md](docs/BUILDINGS.md) - Building system implementation plan (5 phases) - **Phase 1 ✅**
+- [Buildings/Airstrip/README.md](Assets/_Project/Buildings/Airstrip/README.md) - Airstrip setup guide
 - [docs/](docs/) - Technical documentation (UNITS, TOOLS, ANIMATION, BUILDINGS)

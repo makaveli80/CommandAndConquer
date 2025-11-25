@@ -1,0 +1,19 @@
+{
+    "name": "CommandAndConquer.Buildings.Editor",
+    "rootNamespace": "CommandAndConquer.Buildings.Editor",
+    "references": [
+        "CommandAndConquer.Buildings",
+        "CommandAndConquer.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
