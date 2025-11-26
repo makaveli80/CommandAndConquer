@@ -14,7 +14,7 @@ Documentation technique pour Claude Code (claude.ai/code).
 ## Current State
 
 **Branch**: `master`
-**Phase**: 🏭 Building & Production System (Phase 2/5)
+**Phase**: 🏭 Building & Production System (Phase 3/5)
 
 ### Completed Features
 - ✅ Grid system (20×20, 1.0 unit cells, pathfinding 8 directions)
@@ -29,6 +29,7 @@ Documentation technique pour Claude Code (claude.ai/code).
 - ✅ Collision detection with retry mechanism
 - ✅ **Building System Phase 1** - Multi-cell buildings on grid (Airstrip 4×2)
 - ✅ **Building System Phase 2** - Production queue with timer and events
+- ✅ **Building System Phase 3** - Spawn system with unit spawning at exit points
 
 ### Architecture
 - ✅ **Component-Based** (Nov 2025) - 100% composition, zero inheritance
@@ -36,13 +37,13 @@ Documentation technique pour Claude Code (claude.ai/code).
   - New units created 100% in Unity Editor (zero code)
   - ~600 lines of code eliminated
 - ✅ Generic components: Unit, VehicleMovement, SelectableComponent, VehicleAnimator
-- ✅ **Building components**: Building, BuildingData, ProductionQueue, ProductionItem (Phase 3: SpawnPoint)
+- ✅ **Building components**: Building, BuildingData, ProductionQueue, ProductionItem, SpawnPoint
 
 ### 🏗️ Building System (5 Phases)
 - ✅ **Phase 1**: Core Building System - Multi-cell occupation, Pivot Bottom Left, Airstrip 4×2
 - ✅ **Phase 2**: Production System (queue + timer) - **COMPLETE**
-- 🔨 **Phase 3**: Spawn System (unit spawning at exit points) ← **EN COURS**
-- **Phase 4**: Building Placement (ghost preview with validation)
+- ✅ **Phase 3**: Spawn System (unit spawning at exit points) - **COMPLETE**
+- 🔨 **Phase 4**: Building Placement (ghost preview with validation) ← **NEXT**
 - **Phase 5**: UI Production Panel (sidebar + buttons + queue display)
 
 **First Building**: Airstrip (4×2) - Will produce Buggy and Artillery
@@ -220,7 +221,7 @@ CursorManager.ResetCursor()
 GameObject "Airstrip"
 ├── Building (generic)
 ├── ProductionQueue (generic)
-├── SpawnPoint (generic)
+├── SpawnPoint (generic) ✅ Phase 3
 └── SpriteRenderer
 ```
 
@@ -387,9 +388,25 @@ git log --oneline -5
 ---
 
 **Last Updated**: 2025-11-26
-**Current Focus**: Building & Production System (Phase 3/5 - Spawn System)
-**Phase 2 Status**: ✅ **COMPLETE** - Production queue with timer and events functional
-**Next Milestone**: SpawnPoint component for unit spawning at exit points
+**Current Focus**: Building & Production System (Phase 3.5/5 - Spawn Queue)
+**Phase 3.5 Status**: ✅ **COMPLETE** - Automatic spawn queueing for blocked cells
+**Next Milestone**: Phase 4 - Building placement with ghost preview and validation
+
+**Recent Achievements (Phase 3.5)** :
+- ✅ Spawn queue system (FIFO queue for blocked spawns)
+- ✅ Automatic retry mechanism (checks every 0.5s)
+- ✅ Visual feedback (yellow Gizmo + bottom-left UI counter)
+- ✅ Configurable queue size and retry interval
+- ✅ Events for queue changes (OnUnitQueued, OnQueuedUnitSpawned)
+- ✅ No production lost - all units eventually spawn
+
+**Recent Achievements (Phase 3)** :
+- ✅ SpawnPoint component with spawn validation (IsFree check)
+- ✅ Building.cs integration with SpawnPoint auto-discovery
+- ✅ Event-driven spawn flow (Production → Spawn)
+- ✅ Debug Gizmos for spawn point visualization
+- ✅ Error handling for blocked spawn cells
+- ✅ Complete production-to-gameplay loop working
 
 **Recent Achievements (Phase 2)** :
 - ✅ ProductionItem ScriptableObject for defining producible items
@@ -402,6 +419,8 @@ git log --oneline -5
 **Documentation**:
 - [GUIDE.md](GUIDE.md) - Developer guide (architecture, systems, workflows)
 - [CHANGELOG.md](CHANGELOG.md) - Change history
-- [docs/BUILDINGS.md](docs/BUILDINGS.md) - Building system implementation plan (5 phases) - **Phase 2 ✅**
+- [docs/BUILDINGS.md](docs/BUILDINGS.md) - Building system implementation plan (5 phases) - **Phase 3.5 ✅**
+- [docs/PHASE3_SPAWN_SYSTEM.md](docs/PHASE3_SPAWN_SYSTEM.md) - Phase 3 implementation details
+- [docs/PHASE3.5_SPAWN_QUEUE.md](docs/PHASE3.5_SPAWN_QUEUE.md) - Phase 3.5 spawn queue ✨ NEW
 - [Buildings/Airstrip/README.md](Assets/_Project/Buildings/Airstrip/README.md) - Airstrip setup guide
 - [docs/](docs/) - Technical documentation (UNITS, TOOLS, ANIMATION, BUILDINGS)

@@ -473,14 +473,25 @@ private Dictionary<MonoBehaviour, List<GridPosition>> buildingCells = new Dictio
 - ✅ Multiple items en queue
 - ✅ Annulation et vidage de queue
 
-### 🔨 Phase 3 : Spawn System
+### ✅ Phase 3 : Spawn System (COMPLÈTE)
 **Objectif** : Unités apparaissent au point de sortie
 
-12. Créer `SpawnPoint.cs` composant
-13. Ajouter `SpawnPoint` au prefab ConstructionYard
-14. Connecter ProductionQueue → SpawnPoint dans Building.cs
-15. Implémenter apparition d'unité avec vérification cellule libre
-16. **Test** : Production complète Buggy/Artillery → spawn
+- [x] Créer `SpawnPoint.cs` composant
+- [x] Ajouter `SpawnPoint` au prefab Airstrip
+- [x] Connecter ProductionQueue → SpawnPoint dans Building.cs
+- [x] Implémenter apparition d'unité avec vérification cellule libre
+- [x] **Test** : Production complète Buggy/Artillery → spawn
+
+**Fichiers créés** :
+- `Buildings/Common/SpawnPoint.cs` - Composant avec spawn validation
+- `docs/PHASE3_SPAWN_SYSTEM.md` - Documentation complète
+
+**Tests validés** :
+- ✅ Unité spawn à la bonne position (grid → world conversion)
+- ✅ SpawnPoint vérifie cellule libre avant spawn
+- ✅ Logs de debug clairs
+- ✅ Gizmos visualization (spawn point indicator)
+- ✅ Event-driven architecture (Production → Spawn)
 
 ### 🔨 Phase 4 : Building Placement
 **Objectif** : Placement interactif avec feedback visuel
@@ -623,8 +634,26 @@ Après Phase 5, extensions possibles :
 ---
 
 **Dernière mise à jour** : 2025-11-26
-**Phase actuelle** : Phase 2 (Production System) ✅ **COMPLÈTE**
-**Prochaine étape** : Phase 3 - Spawn System
+**Phase actuelle** : Phase 3 (Spawn System) ✅ **COMPLÈTE**
+**Prochaine étape** : Phase 4 - Building Placement
+
+**Changelog Phase 3** :
+- ✅ SpawnPoint component avec spawn validation
+- ✅ Building.cs integration avec SpawnPoint
+- ✅ Spawn logic avec cell validation (IsFree check)
+- ✅ Debug Gizmos pour visualiser spawn point
+- ✅ Event-driven production → spawn flow
+- ✅ Error handling pour spawn bloqué
+- ✅ Documentation complète (PHASE3_SPAWN_SYSTEM.md)
+
+**Changelog Phase 3.5** :
+- ✅ Spawn queue system (FIFO queue for blocked spawns)
+- ✅ Automatic retry mechanism (checks every 0.5s)
+- ✅ Visual feedback (yellow Gizmo + bottom-left UI counter)
+- ✅ Configurable queue size and retry interval
+- ✅ Events for queue changes (OnUnitQueued, OnQueuedUnitSpawned)
+- ✅ No production lost - all units eventually spawn
+- ✅ Documentation complète (PHASE3.5_SPAWN_QUEUE.md)
 
 **Changelog Phase 2** :
 - ✅ ProductionItem ScriptableObject avec validation

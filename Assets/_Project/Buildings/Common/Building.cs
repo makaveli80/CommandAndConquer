@@ -27,6 +27,7 @@ namespace CommandAndConquer.Buildings
         private List<GridPosition> occupiedCells;      // Toutes les cellules occupées
         private GridManager gridManager;
         private ProductionQueue productionQueue;       // Phase 2: Production system
+        private SpawnPoint spawnPoint;                 // Phase 3: Spawn system
 
         #endregion
 
@@ -54,6 +55,9 @@ namespace CommandAndConquer.Buildings
 
             // Auto-découverte du ProductionQueue (Phase 2)
             productionQueue = GetComponent<ProductionQueue>();
+
+            // Auto-découverte du SpawnPoint (Phase 3)
+            spawnPoint = GetComponent<SpawnPoint>();
 
             occupiedCells = new List<GridPosition>();
         }
@@ -210,7 +214,7 @@ namespace CommandAndConquer.Buildings
 
         /// <summary>
         /// Appelé quand un item de production est terminé.
-        /// Phase 2: Logs uniquement. Phase 3: Spawn des unités.
+        /// Phase 3: Spawns units or initiates building placement.
         /// </summary>
         private void HandleProductionCompleted(ProductionItem item)
         {
@@ -219,11 +223,32 @@ namespace CommandAndConquer.Buildings
             // Déclencher l'event public
             OnProductionCompleted?.Invoke(item);
 
-            // Phase 3: SpawnPoint spawning sera ajouté ici
-            // if (!item.isBuilding)
-            // {
-            //     spawnPoint?.SpawnUnit(item.prefab);
-            // }
+            // Phase 3: Spawn units at exit point
+            // Phase 3.5: Units are automatically queued if spawn cell is blocked
+            if (!item.isBuilding)
+            {
+                if (spawnPoint != null)
+                {
+                    bool spawned = spawnPoint.SpawnUnit(item.prefab);
+                    if (spawned)
+                    {
+                        Debug.Log($"[Building] '{item.itemName}' spawned immediately");
+                    }
+                    else
+                    {
+                        Debug.Log($"[Building] '{item.itemName}' queued for spawn (cell blocked)");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[Building] '{BuildingName}' has no SpawnPoint component to spawn '{item.itemName}'!");
+                }
+            }
+            else
+            {
+                // Phase 4: Building placement will be handled here
+                Debug.Log($"[Building] Building production completed: '{item.itemName}' (Phase 4: placement system not yet implemented)");
+            }
         }
 
         /// <summary>

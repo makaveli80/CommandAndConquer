@@ -18,4 +18,5 @@ MonoBehaviour:
   sprite: {fileID: 6136348692497330815, guid: 01af4c54eec417f40bfd31a089029232, type: 3}
   width: 4
   height: 2
-  spawnOffset: {x: 2, y: 0}
+  canProduce: []
+  spawnOffset: {x: 2, y: -1}

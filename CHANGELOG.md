@@ -10,6 +10,124 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Phase 2 : Systèmes de base (Commits 6-10+) ✅ TERMINÉE
 
+## Building System - Spawn Queue (Phase 3.5) (2025-11-26) ✅
+
+### Ajouté
+- **SpawnPoint.cs** - Système de file d'attente pour spawns bloqués (Phase 3.5)
+  - Queue FIFO pour unités en attente de spawn
+  - Retry automatique toutes les 0.5s (configurable)
+  - Propriétés publiques: QueueCount, HasQueuedUnits
+  - API: ClearQueue() pour nettoyage
+  - Configuration Inspector: retryInterval (0.5s), maxQueueSize (10)
+  - Events: OnUnitQueued, OnQueuedUnitSpawned
+- **Visual feedback** pour spawn queue
+  - Gizmo jaune quand queue contient des unités
+  - UI bottom-left: "📦 Spawn Queue: X unit(s) waiting"
+  - Logs détaillés pour queue operations
+- **Mécanisme de retry automatique**
+  - Vérification périodique dans Update() via Time.time
+  - Spawn automatique dès que cellule devient libre
+  - Garantie FIFO: premier produit = premier spawné
+
+### Modifié
+- **SpawnPoint.cs** - Refactorisation majeure du système spawn
+  - Méthode SpawnUnit() retourne true=spawn immédiat, false=queued
+  - Séparation TrySpawnImmediate() et EnqueueUnit()
+  - TrySpawnFromQueue() pour processing de la queue
+  - Gizmos mis à jour pour montrer état queue (vert/orange/jaune)
+  - OnGUI debug UI activé seulement si queue non-vide
+- **Building.cs** - Intégration spawn queue
+  - HandleProductionCompleted() adapté pour gérer spawns queueés
+  - Logs informatifs: "spawned immediately" vs "queued for spawn"
+  - Suppression du warning Phase 3 (queue gère automatiquement)
+
+### Architecture
+- **Time-based retry pattern**: CPU-efficient, O(1) check par frame
+- **Graceful degradation**: Queue pleine → reject avec warning (pas de crash)
+- **Event-driven**: Découplage complet Building ↔ SpawnPoint
+- **Performance**: 0.5s interval × 100 buildings = seulement 200 checks/sec
+
+### Tests Validés
+- ✅ Spawn immédiat quand cellule libre
+- ✅ Queue activation quand cellule bloquée
+- ✅ Retry automatique et spawn dès que cellule libre
+- ✅ Multiple unités queueées (FIFO order)
+- ✅ Queue limit fonctionnel (reject avec warning)
+- ✅ Visual feedback (Gizmo + UI) fonctionne
+- ✅ Events déclenchés correctement
+
+### Documentation
+- Nouveau fichier: `docs/PHASE3.5_SPAWN_QUEUE.md` (guide complet)
+  - Architecture et design patterns
+  - Configuration et tuning
+  - 5 test cases détaillés
+  - Edge cases et limitations
+  - Performance characteristics
+
+## Building System - Spawn System (Phase 3) (2025-11-26) ✅
+
+### Ajouté
+- **SpawnPoint.cs** - Composant de spawn d'unités (Phase 3)
+  - Calcul position spawn: origin + offset depuis BuildingData
+  - Validation cellule libre via GridManager.IsFree()
+  - Instantiation unité avec conversion grid → world
+  - Méthode publique: SpawnUnit(GameObject prefab)
+  - Méthode publique: GetSpawnPosition() pour debugging
+  - Auto-découverte: GridManager, Building parent
+- **Gizmos visualization** pour spawn point
+  - Sphère verte si cellule libre
+  - Sphère orange si cellule occupée
+  - Flèche vers le haut (indicateur spawn)
+  - Ligne du centre du bâtiment vers spawn point
+- **Production → Spawn flow** complet
+  - ProductionQueue.OnItemCompleted → Building.HandleProductionCompleted
+  - Building appelle SpawnPoint.SpawnUnit()
+  - Distinction units (spawn) vs buildings (Phase 4: placement)
+
+### Modifié
+- **Building.cs** - Intégration SpawnPoint
+  - Nouveau champ: SpawnPoint spawnPoint
+  - Auto-découverte dans Awake(): GetComponent<SpawnPoint>()
+  - HandleProductionCompleted() implémenté pour Phase 3
+  - Différenciation item.isBuilding pour units vs buildings
+  - Warning si SpawnPoint manquant
+- **BuildingData.cs** - Support spawn offset
+  - Champ existant spawnOffset utilisé pour Phase 3
+  - Documentation: offset relatif à l'origine du bâtiment
+
+### Architecture
+- **100% Composition**: SpawnPoint = composant générique réutilisable
+- **Event-driven**: Production → Building → SpawnPoint via events
+- **Validation first**: Vérifie IsFree() avant instantiation
+- **Pivot Bottom Left**: Calcul ultra-simple grâce à convention pivot
+
+### Flow de Production Complet
+```
+1. User presse '1' (Buggy)
+2. Building.AddToProductionQueue(buggyItem)
+3. ProductionQueue.Update() timer 8s (0% → 100%)
+4. OnItemCompleted event
+5. Building.HandleProductionCompleted(item)
+6. SpawnPoint.SpawnUnit(item.prefab)
+7. ✅ Unit spawned at spawn point!
+8. Unit.Start() registers with GridManager
+```
+
+### Tests Validés
+- ✅ Unité spawn à la position correcte
+- ✅ Validation cellule libre fonctionne
+- ✅ Conversion grid → world correcte (+0.5f)
+- ✅ Gizmos visualization fonctionnelle
+- ✅ Logs clairs et informatifs
+
+### Documentation
+- Nouveau fichier: `docs/PHASE3_SPAWN_SYSTEM.md` (guide complet)
+  - Overview et architecture
+  - Setup instructions
+  - Testing guide avec expected output
+  - Visual Gizmos explanation
+  - Architecture insights
+
 ## Building System - Production (Phase 2) (2025-11-26) ✅
 
 ### Ajouté
