@@ -1,17 +1,18 @@
 {
-  "name": "CommandAndConquer.Buildings",
-  "rootNamespace": "CommandAndConquer.Buildings",
-  "references": [
-    "CommandAndConquer.Core",
-    "CommandAndConquer.Grid"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "CommandAndConquer.Buildings",
+    "rootNamespace": "CommandAndConquer.Buildings",
+    "references": [
+        "CommandAndConquer.Core",
+        "CommandAndConquer.Grid",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

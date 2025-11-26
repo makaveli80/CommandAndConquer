@@ -28,6 +28,7 @@ Documentation technique pour Claude Code (claude.ai/code).
 - ✅ Atomic cell reservation (prevents race conditions)
 - ✅ Collision detection with retry mechanism
 - ✅ **Building System Phase 1** - Multi-cell buildings on grid (Airstrip 4×2)
+- ✅ **Building System Phase 2** - Production queue with timer and events
 
 ### Architecture
 - ✅ **Component-Based** (Nov 2025) - 100% composition, zero inheritance
@@ -35,12 +36,12 @@ Documentation technique pour Claude Code (claude.ai/code).
   - New units created 100% in Unity Editor (zero code)
   - ~600 lines of code eliminated
 - ✅ Generic components: Unit, VehicleMovement, SelectableComponent, VehicleAnimator
-- ✅ **Building components**: Building, BuildingData (Phase 2: ProductionQueue, SpawnPoint)
+- ✅ **Building components**: Building, BuildingData, ProductionQueue, ProductionItem (Phase 3: SpawnPoint)
 
 ### 🏗️ Building System (5 Phases)
 - ✅ **Phase 1**: Core Building System - Multi-cell occupation, Pivot Bottom Left, Airstrip 4×2
-- 🔨 **Phase 2**: Production System (queue + timer) ← **EN COURS**
-- **Phase 3**: Spawn System (unit spawning at exit points)
+- ✅ **Phase 2**: Production System (queue + timer) - **COMPLETE**
+- 🔨 **Phase 3**: Spawn System (unit spawning at exit points) ← **EN COURS**
 - **Phase 4**: Building Placement (ghost preview with validation)
 - **Phase 5**: UI Production Panel (sidebar + buttons + queue display)
 
@@ -385,21 +386,22 @@ git log --oneline -5
 
 ---
 
-**Last Updated**: 2025-11-25
-**Current Focus**: Building & Production System (Phase 2/5 - Production System)
-**Phase 1 Status**: ✅ **COMPLETE** - Airstrip 4×2 functional with Pivot Bottom Left convention
-**Next Milestone**: ProductionQueue with timer for Buggy and Artillery production
+**Last Updated**: 2025-11-26
+**Current Focus**: Building & Production System (Phase 3/5 - Spawn System)
+**Phase 2 Status**: ✅ **COMPLETE** - Production queue with timer and events functional
+**Next Milestone**: SpawnPoint component for unit spawning at exit points
 
-**Recent Achievements (Phase 1)** :
-- ✅ Multi-cell building system with atomic occupation
-- ✅ Pivot Bottom Left convention for perfect grid alignment
-- ✅ BuildingSpriteImporter for automatic sprite configuration
-- ✅ Airstrip 4×2 with debug Gizmos (blue cells, yellow center, green origin)
-- ✅ GridManager coherence verification extended to buildings
+**Recent Achievements (Phase 2)** :
+- ✅ ProductionItem ScriptableObject for defining producible items
+- ✅ ProductionQueue component with FIFO queue and progress timer
+- ✅ Event-driven architecture (OnItemCompleted, OnProgressUpdated, OnItemStarted)
+- ✅ Building.cs integration with production system
+- ✅ ProductionQueueTester for keyboard-based testing (temp Phase 2)
+- ✅ Editor utilities for quick asset creation
 
 **Documentation**:
 - [GUIDE.md](GUIDE.md) - Developer guide (architecture, systems, workflows)
 - [CHANGELOG.md](CHANGELOG.md) - Change history
-- [docs/BUILDINGS.md](docs/BUILDINGS.md) - Building system implementation plan (5 phases) - **Phase 1 ✅**
+- [docs/BUILDINGS.md](docs/BUILDINGS.md) - Building system implementation plan (5 phases) - **Phase 2 ✅**
 - [Buildings/Airstrip/README.md](Assets/_Project/Buildings/Airstrip/README.md) - Airstrip setup guide
 - [docs/](docs/) - Technical documentation (UNITS, TOOLS, ANIMATION, BUILDINGS)

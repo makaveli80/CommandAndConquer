@@ -449,14 +449,29 @@ private Dictionary<MonoBehaviour, List<GridPosition>> buildingCells = new Dictio
 - [x] Vérification de cohérence fonctionne pour bâtiments
 - [x] Cleanup automatique des bâtiments détruits
 
-### 🔨 Phase 2 : Production System
+### ✅ Phase 2 : Production System (COMPLÈTE)
 **Objectif** : File d'attente avec timer fonctionnelle
 
-7. Créer `ProductionItem.cs` ScriptableObject
-8. Créer `ProductionQueue.cs` avec timer et events
-9. Créer assets ProductionItem pour Buggy et Artillery
-10. Intégrer `ProductionQueue` dans `Building.cs`
-11. **Test** : Production via code (`Debug.Log` + timer)
+- [x] Créer `ProductionItem.cs` ScriptableObject
+- [x] Créer `ProductionQueue.cs` avec timer et events
+- [x] Créer assets ProductionItem pour Buggy et Artillery via `ProductionItemSetup.cs`
+- [x] Intégrer `ProductionQueue` dans `Building.cs`
+- [x] Créer `ProductionQueueTester.cs` pour tests clavier
+- [x] **Test** : Production via code (`Debug.Log` + timer)
+
+**Fichiers créés** :
+- `Buildings/Common/ProductionItem.cs` - ScriptableObject
+- `Buildings/Common/ProductionQueue.cs` - Composant avec timer FIFO
+- `Buildings/Common/ProductionQueueTester.cs` - Script de test temporaire
+- `Buildings/Editor/ProductionItemCreator.cs` - Utilitaire éditeur
+- `Buildings/Editor/ProductionItemSetup.cs` - Setup automatique assets
+
+**Tests validés** :
+- ✅ Timer progresse de 0% à 100%
+- ✅ Queue FIFO fonctionnelle
+- ✅ Events déclenchés (OnItemStarted, OnProgressUpdated, OnItemCompleted)
+- ✅ Multiple items en queue
+- ✅ Annulation et vidage de queue
 
 ### 🔨 Phase 3 : Spawn System
 **Objectif** : Unités apparaissent au point de sortie
@@ -497,11 +512,13 @@ private Dictionary<MonoBehaviour, List<GridPosition>> buildingCells = new Dictio
 - [ ] GridManager détecte correctement les collisions multi-cellules
 - [ ] Bâtiment se place au bon endroit (coordonnées world correctes)
 
-### Tests Phase 2
-- [ ] File d'attente fonctionne (FIFO)
-- [ ] Timer progresse correctement
-- [ ] Events OnItemCompleted déclenchés
-- [ ] Multiple items en queue
+### Tests Phase 2 ✅
+- [x] File d'attente fonctionne (FIFO)
+- [x] Timer progresse correctement
+- [x] Events OnItemCompleted déclenchés
+- [x] Multiple items en queue
+- [x] Annulation de production (CancelCurrent)
+- [x] Vidage de queue (ClearQueue)
 
 ### Tests Phase 3
 - [ ] Unité spawn à la bonne position
@@ -605,14 +622,15 @@ Après Phase 5, extensions possibles :
 
 ---
 
-**Dernière mise à jour** : 2025-11-25
-**Phase actuelle** : Phase 1 (Core Building System) ✅ **COMPLÈTE**
-**Prochaine étape** : Phase 2 - Production System
+**Dernière mise à jour** : 2025-11-26
+**Phase actuelle** : Phase 2 (Production System) ✅ **COMPLÈTE**
+**Prochaine étape** : Phase 3 - Spawn System
 
-**Changelog Phase 1** :
-- ✅ Architecture complète avec support multi-cellule
-- ✅ Convention Pivot Bottom Left implémentée
-- ✅ BuildingSpriteImporter pour automation
-- ✅ Airstrip 4×2 fonctionnel avec Gizmos de debug
-- ✅ Documentation complète (BUILDINGS.md, README.md, CLAUDE.md)
-- ✅ Tous les bugs corrigés (cohérence, cleanup, alignement)
+**Changelog Phase 2** :
+- ✅ ProductionItem ScriptableObject avec validation
+- ✅ ProductionQueue avec timer et events
+- ✅ Event-driven architecture (découplage complet)
+- ✅ Building.cs integration complète
+- ✅ Editor utilities pour création rapide d'assets
+- ✅ ProductionQueueTester pour tests (contrôles clavier 1/2/C/Q)
+- ✅ Logs détaillés et UI debug en coin supérieur gauche

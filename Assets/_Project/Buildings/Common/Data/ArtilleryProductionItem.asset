@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5380a74564b52be499d6abfc5a237c41, type: 3}
+  m_Name: ArtilleryProductionItem
+  m_EditorClassIdentifier: CommandAndConquer.Buildings::CommandAndConquer.Buildings.ProductionItem
+  itemName: Artillery
+  icon: {fileID: 0}
+  description: Long-range artillery unit with heavy firepower.
+  productionTime: 15
+  prefab: {fileID: 6733659363229217077, guid: 5f529c5d71f57e54db51d7c7011252d2, type: 3}
+  isBuilding: 0

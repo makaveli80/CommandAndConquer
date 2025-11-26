@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 7875551987729413680}
   - component: {fileID: 8671000307897059635}
   - component: {fileID: 9141702416828525108}
+  - component: {fileID: 1053529553440643284}
+  - component: {fileID: 6171250410419698070}
   m_Layer: 0
   m_Name: Airstrip
   m_TagString: Untagged
@@ -142,7 +144,7 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0, y: 0}
     oldSize: {x: 4, y: 2}
     newSize: {x: 4, y: 2}
     adaptiveTilingThreshold: 0.5
@@ -151,3 +153,29 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.0001, y: 0.0001}
   m_EdgeRadius: 0
+--- !u!114 &1053529553440643284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4517484677351838747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13ee28fe06ef67947996cfc1965750ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Buildings::CommandAndConquer.Buildings.ProductionQueue
+--- !u!114 &6171250410419698070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4517484677351838747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b994f190c3c7f7d4e8c719f58591c189, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CommandAndConquer.Buildings::CommandAndConquer.Buildings.ProductionQueueTester
+  buggyItem: {fileID: 11400000, guid: b06e0616db1e8694b82efa69a563c56c, type: 2}
+  artilleryItem: {fileID: 11400000, guid: efa0f5ef22da33a4e93922ebe13c29ef, type: 2}

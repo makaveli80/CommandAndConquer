@@ -10,6 +10,50 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Phase 2 : Systèmes de base (Commits 6-10+) ✅ TERMINÉE
 
+## Building System - Production (Phase 2) (2025-11-26) ✅
+
+### Ajouté
+- **ProductionItem.cs** - ScriptableObject définissant les items produisibles
+  - Propriétés: nom, icône, description, temps de production, prefab
+  - Validation automatique dans OnValidate()
+  - Flag isBuilding pour différencier unités/bâtiments
+- **ProductionQueue.cs** - Composant de gestion de file d'attente
+  - Queue FIFO avec timer progressif (0.0 → 1.0)
+  - Events: OnItemStarted, OnProgressUpdated, OnItemCompleted
+  - API: AddToQueue(), CancelCurrent(), ClearQueue()
+  - UI debug en coin supérieur gauche (production + queue count)
+- **ProductionQueueTester.cs** - Script de test temporaire (Phase 2)
+  - Contrôles clavier: 1=Buggy, 2=Artillery, C=Cancel, Q=Clear
+  - Références assignables aux ProductionItems
+- **ProductionItemCreator.cs** - Utilitaire éditeur pour création rapide
+  - Menu: Assets > Create > Command & Conquer > Production Item (Quick)
+- **ProductionItemSetup.cs** - Setup automatique des assets
+  - Menu: Tools > Command & Conquer > Setup Production Items
+  - Génère BuggyProductionItem.asset (8s) et ArtilleryProductionItem.asset (15s)
+
+### Modifié
+- **Building.cs** - Intégration complète du système de production
+  - Auto-découverte du composant ProductionQueue dans Awake()
+  - Méthode SetupProductionQueue() pour connexion events
+  - API publique: AddToProductionQueue(), ProductionQueue property
+  - Event OnProductionCompleted pour Phase 3
+  - Logs détaillés de progression
+- **BuildingData.cs** - Ajout du support de production
+  - Nouveau champ: ProductionItem[] canProduce
+  - Organisation par sections (Production Phase 2, Spawn Phase 3)
+
+### Architecture
+- **Event-driven pattern** : ProductionQueue découplé de Building via events
+- **Timer normalisé** : Progress 0.0-1.0 indépendant du temps réel
+- **Validation robuste** : Null checks + logs clairs à chaque étape
+
+### Tests Validés
+- ✅ Timer progresse correctement (0% → 100%)
+- ✅ Queue FIFO avec multiple items
+- ✅ Events déclenchés au bon moment
+- ✅ Annulation et vidage de queue fonctionnels
+- ✅ Logs détaillés pour debugging
+
 ## Multi-selection avec drag box (2025-11-22)
 
 ### Ajouté

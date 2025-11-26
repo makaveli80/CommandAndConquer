@@ -26,13 +26,17 @@ namespace CommandAndConquer.Buildings
         private GridPosition originPosition;           // Cellule d'origine (bas-gauche)
         private List<GridPosition> occupiedCells;      // Toutes les cellules occupées
         private GridManager gridManager;
+        private ProductionQueue productionQueue;       // Phase 2: Production system
 
         #endregion
 
         #region Events
 
-        // NOTE: Les événements de production seront ajoutés en Phase 2
-        // public event System.Action<ProductionItem> OnProductionCompleted;
+        /// <summary>
+        /// Déclenché quand un item de production est terminé.
+        /// Phase 2: Production System
+        /// </summary>
+        public event System.Action<ProductionItem> OnProductionCompleted;
 
         #endregion
 
@@ -48,12 +52,16 @@ namespace CommandAndConquer.Buildings
                 Debug.LogError($"[Building] GridManager not found in scene!");
             }
 
+            // Auto-découverte du ProductionQueue (Phase 2)
+            productionQueue = GetComponent<ProductionQueue>();
+
             occupiedCells = new List<GridPosition>();
         }
 
         private void Start()
         {
             Initialize();
+            SetupProductionQueue();
         }
 
         private void OnDestroy()
@@ -156,8 +164,74 @@ namespace CommandAndConquer.Buildings
 
         #endregion
 
-        // NOTE: Les méthodes de production seront ajoutées en Phase 2
-        // public void AddToProductionQueue(ProductionItem item) { }
+        #region Production System (Phase 2)
+
+        /// <summary>
+        /// Configure le système de production et connecte les events.
+        /// Phase 2: Production System
+        /// </summary>
+        private void SetupProductionQueue()
+        {
+            if (productionQueue == null)
+            {
+                // Pas de ProductionQueue sur ce bâtiment (normal pour certains types)
+                return;
+            }
+
+            // Connecter les events
+            productionQueue.OnItemCompleted += HandleProductionCompleted;
+            productionQueue.OnItemStarted += (item) => Debug.Log($"[Building] '{BuildingName}' started producing '{item.itemName}'");
+            productionQueue.OnProgressUpdated += (item, progress) => { }; // Silent pour éviter spam
+
+            Debug.Log($"[Building] '{BuildingName}' production system ready");
+        }
+
+        /// <summary>
+        /// Ajoute un item à la file de production.
+        /// Phase 2: Production System
+        /// </summary>
+        public void AddToProductionQueue(ProductionItem item)
+        {
+            if (productionQueue == null)
+            {
+                Debug.LogWarning($"[Building] '{BuildingName}' has no ProductionQueue component!");
+                return;
+            }
+
+            if (item == null)
+            {
+                Debug.LogError($"[Building] Cannot add null item to production queue!");
+                return;
+            }
+
+            productionQueue.AddToQueue(item);
+            Debug.Log($"[Building] '{BuildingName}' added '{item.itemName}' to production queue");
+        }
+
+        /// <summary>
+        /// Appelé quand un item de production est terminé.
+        /// Phase 2: Logs uniquement. Phase 3: Spawn des unités.
+        /// </summary>
+        private void HandleProductionCompleted(ProductionItem item)
+        {
+            Debug.Log($"[Building] ✅ '{BuildingName}' completed production of '{item.itemName}'!");
+
+            // Déclencher l'event public
+            OnProductionCompleted?.Invoke(item);
+
+            // Phase 3: SpawnPoint spawning sera ajouté ici
+            // if (!item.isBuilding)
+            // {
+            //     spawnPoint?.SpawnUnit(item.prefab);
+            // }
+        }
+
+        /// <summary>
+        /// Accès public au ProductionQueue (pour l'UI en Phase 5).
+        /// </summary>
+        public ProductionQueue ProductionQueue => productionQueue;
+
+        #endregion
 
         #region Debug
 

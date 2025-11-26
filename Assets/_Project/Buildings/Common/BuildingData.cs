@@ -27,10 +27,12 @@ namespace CommandAndConquer.Buildings
         [Tooltip("Hauteur en cellules")]
         public int height = 1;
 
-        [Header("Spawn Point")]
+        [Header("Production (Phase 2)")]
+        [Tooltip("Liste des items que ce bâtiment peut produire (unités ou bâtiments)")]
+        public ProductionItem[] canProduce;
+
+        [Header("Spawn Point (Phase 3)")]
         [Tooltip("Offset du point de sortie des unités (relatif à l'origine du bâtiment)")]
         public Vector2Int spawnOffset;
-
-        // NOTE: Le champ "canProduce" (ProductionItem[]) sera ajouté en Phase 2
     }
 }
